@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-hand: "Caveat", cursive;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-romance-50: #fff5f7;
+  --color-romance-100: #ffe4ea;
+  --color-romance-200: #fecdd8;
+  --color-romance-300: #fda4bb;
+  --color-romance-400: #fb7199;
+  --color-romance-500: #f2477b;
+  --color-romance-600: #de2464;
+  --color-romance-700: #bb1650;
+  --color-romance-800: #9c1648;
+  --color-romance-900: #851742;
+  --color-romance-950: #4b0620;
+
+  --color-gold: #dcae63;
+  --color-ink: #46212f;
+  --color-cream: #fffaf7;
+
+  --animate-float-slow: floaty 9s ease-in-out infinite;
+  --animate-heartbeat: heartbeat 2.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 6s linear infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(3deg);
+  }
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.18);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.12);
+  }
+  56% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background-color: var(--color-romance-50);
+    background-image:
+      radial-gradient(
+        ellipse 80% 55% at 12% 0%,
+        rgba(253, 164, 187, 0.4),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 70% 50% at 92% 18%,
+        rgba(220, 174, 99, 0.22),
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 90% 60% at 50% 100%,
+        rgba(242, 71, 123, 0.16),
+        transparent 65%
+      );
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-romance-300);
+    color: var(--color-romance-950);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-romance-100);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      var(--color-romance-400),
+      var(--color-romance-600)
+    );
+    border-radius: 99px;
+  }
+}
+
+@utility glass {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+@utility text-gradient-romance {
+  background: linear-gradient(
+    100deg,
+    var(--color-romance-700),
+    var(--color-romance-400),
+    var(--color-gold),
+    var(--color-romance-600)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-shimmer);
+}
+
+@utility paper-note {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 27px,
+    rgba(242, 71, 123, 0.16) 27px 28px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,28 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+.venv/
+venv/
+env/
+backend/staticfiles/
+# pasta antiga das fotos — hoje elas moram no banco
+backend/media/
+
+# Ambiente
+.env
+.env.local
+*.env
+!.env.example
+
+# Node / Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
