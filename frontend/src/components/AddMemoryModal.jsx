@@ -97,7 +97,10 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
 
   return (
     <Modal onClose={onClose} className="max-w-3xl">
-      <form onSubmit={submit} className="max-h-[85vh] overflow-y-auto p-6 sm:p-8">
+      <form
+        onSubmit={submit}
+        className="max-h-[88dvh] overflow-y-auto overscroll-contain p-5 pt-7 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:p-8"
+      >
         <h2 className="font-display text-3xl text-romance-900">
           Guardar um momento
         </h2>
@@ -157,7 +160,12 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
               <>
                 <span className="text-4xl">📸</span>
                 <p className="text-sm text-romance-500">
-                  Arraste a foto aqui ou clique para escolher
+                  <span className="pointer-coarse:hidden">
+                    Arraste a foto aqui ou clique para escolher
+                  </span>
+                  <span className="hidden pointer-coarse:inline">
+                    Toque para escolher uma foto
+                  </span>
                 </p>
                 <p className="text-xs text-romance-300">
                   JPG, PNG ou WEBP — otimizo o tamanho pra você
@@ -214,7 +222,7 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
                     key={value}
                     type="button"
                     onClick={() => setForm((c) => ({ ...c, author: value }))}
-                    className={`flex-1 cursor-pointer rounded-full px-3 py-2 text-xs transition ${
+                    className={`flex-1 cursor-pointer rounded-full px-3 py-3 text-sm transition sm:py-2 sm:text-xs ${
                       form.author === value
                         ? "bg-romance-600 text-cream shadow-md"
                         : "bg-romance-50 text-romance-500 ring-1 ring-romance-100 hover:bg-romance-100"
@@ -283,8 +291,10 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   );
 }
 
+// text-base no celular é essencial: abaixo de 16px o iOS dá zoom sozinho
+// ao focar o campo e desalinha a tela inteira
 const inputClass =
-  "w-full rounded-xl bg-white/80 px-4 py-2.5 text-sm text-romance-800 ring-1 ring-romance-200 outline-none placeholder:text-romance-300 focus:ring-2 focus:ring-romance-400";
+  "w-full rounded-xl bg-white/80 px-4 py-3 text-base text-romance-800 ring-1 ring-romance-200 outline-none placeholder:text-romance-300 focus:ring-2 focus:ring-romance-400 sm:py-2.5 sm:text-sm";
 
 function Field({ label, children }) {
   return (

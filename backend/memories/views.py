@@ -146,20 +146,29 @@ def site_config(request):
     """Nomes, datas e playlist — o front lê tudo daqui, sem hardcode."""
     config = dict(settings.LOVE_CONFIG)
 
-    since = config.get("couple_since") or ""
-    days_together = None
-    if since:
-        try:
-            start = datetime.strptime(since, "%Y-%m-%d").date()
-            days_together = (date.today() - start).days
-        except ValueError:
-            since = ""
+    since = (config.get("couple_since") or "").strip()
+    start = _parse_moment(since)
+    if start is None:
+        since = ""
     config["couple_since"] = since
-    config["days_together"] = days_together
+    # negativo = a data ainda não chegou (o front esconde o contador até lá)
+    config["days_together"] = (date.today() - start.date()).days if start else None
 
     playlist_url = config.get("spotify_playlist_url", "")
     config["spotify_embed_url"] = _to_spotify_embed(playlist_url)
     return Response(config)
+
+
+def _parse_moment(value: str):
+    """Aceita '2026-08-04' ou '2026-08-04T20:30' (a hora exata do pedido)."""
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    return None
 
 
 def _to_spotify_embed(url: str) -> str:

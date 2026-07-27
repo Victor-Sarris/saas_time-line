@@ -93,7 +93,8 @@ export default function MemoryCard({ memory, side = "left", onOpen }) {
               💌 {notes} {notes === 1 ? "recado" : "recados"}
             </span>
           )}
-          <span className="ml-auto text-[11px] text-romance-300 opacity-0 transition group-hover:opacity-100">
+          {/* no toque não existe hover, então a dica fica sempre visível */}
+          <span className="ml-auto text-[11px] text-romance-300 opacity-0 transition group-hover:opacity-100 pointer-coarse:opacity-100">
             abrir →
           </span>
         </div>

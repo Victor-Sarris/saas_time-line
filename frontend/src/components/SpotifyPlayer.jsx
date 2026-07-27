@@ -28,7 +28,7 @@ export default function SpotifyPlayer({ embedUrl, started = false }) {
   };
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 flex flex-col items-start gap-3">
+    <div className="bottom-safe fixed left-5 z-50 flex flex-col items-start gap-3">
       <motion.div
         initial={false}
         animate={
@@ -73,7 +73,7 @@ export default function SpotifyPlayer({ embedUrl, started = false }) {
             ? "A música continua tocando 💗"
             : "Nossa playlist"
         }
-        className="relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-romance-500 to-romance-700 text-2xl text-cream shadow-xl shadow-romance-400/50"
+        className="relative flex h-15 w-15 cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-romance-500 to-romance-700 text-2xl text-cream shadow-xl shadow-romance-400/50 sm:h-14 sm:w-14"
       >
         <motion.span
           animate={everOpened ? { rotate: 360 } : { rotate: 0 }}

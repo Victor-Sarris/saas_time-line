@@ -11,7 +11,7 @@ function YearMarker({ year }) {
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6 }}
-      className="relative mb-10 flex justify-start pl-14 md:justify-center md:pl-0"
+      className="relative mb-10 flex justify-start pl-11 md:justify-center md:pl-0 sm:pl-14"
     >
       <span className="glass rounded-full px-6 py-2 font-display text-lg tracking-[0.2em] text-romance-600 shadow-md shadow-romance-200/60">
         {year}
@@ -36,7 +36,7 @@ export default function Timeline({ memories, onOpen }) {
   let index = -1;
 
   return (
-    <section id="timeline" className="relative px-5 pb-28 sm:px-8">
+    <section id="timeline" className="relative px-4 pb-28 sm:px-8">
       <div ref={containerRef} className="relative mx-auto max-w-5xl">
         {/* trilho da linha do tempo */}
         <div
@@ -53,13 +53,13 @@ export default function Timeline({ memories, onOpen }) {
           <div key={group.year} className="pt-6 pb-2">
             <YearMarker year={group.year} />
 
-            <div className="space-y-14 md:space-y-20">
+            <div className="space-y-12 sm:space-y-14 md:space-y-20">
               {group.items.map((memory) => {
                 index += 1;
                 const isLeft = index % 2 === 0;
 
                 return (
-                  <div key={memory.id} className="relative pl-14 md:pl-0">
+                  <div key={memory.id} className="relative pl-11 sm:pl-14 md:pl-0">
                     {/* coração no trilho */}
                     <motion.span
                       initial={{ scale: 0, opacity: 0 }}
@@ -96,7 +96,7 @@ export default function Timeline({ memories, onOpen }) {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="relative mt-16 flex justify-start pl-14 md:justify-center md:pl-0"
+          className="relative mt-16 flex justify-start pl-11 md:justify-center md:pl-0 sm:pl-14"
         >
           <span className="font-hand text-2xl text-romance-400">
             ...e a história continua

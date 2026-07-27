@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Nos componentes: "pointer-coarse:" = dedo (celular), "pointer-fine:" = mouse.
+   É como as dicas que no desktop só aparecem no hover ficam visíveis no toque. */
+
 @theme {
   --font-display: "Playfair Display", Georgia, serif;
   --font-hand: "Caveat", cursive;
@@ -64,6 +67,9 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* o iOS aumenta o texto sozinho ao girar a tela; isso impede */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -87,8 +93,23 @@
         rgba(242, 71, 123, 0.16),
         transparent 65%
       );
-    background-attachment: fixed;
+    /* "fixed" engasga feio no Safari do iPhone — só no desktop */
+    background-attachment: scroll;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    body {
+      background-attachment: fixed;
+    }
+  }
+
+  /* tira o retângulo azul que o Android pinta em cima de tudo que é tocado */
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
   }
 
   ::selection {
@@ -130,6 +151,25 @@
   background-clip: text;
   color: transparent;
   animation: var(--animate-shimmer);
+}
+
+/* barra de filtros: rola de lado no celular sem mostrar a barra feia */
+@utility hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* respeita a barrinha do iPhone, senão o botão fica embaixo dela */
+@utility bottom-safe {
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+@utility bottom-safe-lg {
+  bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
 @utility paper-note {

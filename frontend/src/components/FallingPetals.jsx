@@ -33,6 +33,7 @@ export default function FallingPetals({ density = 26 }) {
     let frame;
     let width = 0;
     let height = 0;
+    let pausado = false;
 
     const spawn = () => ({
       x: Math.random() * width,
@@ -48,7 +49,10 @@ export default function FallingPetals({ density = 26 }) {
     let petals = [];
 
     const resize = () => {
-      const ratio = window.devicePixelRatio || 1;
+      // no celular: menos corações e sem multiplicar pela densidade de pixels.
+      // A tela é pequena, ninguém nota — e a bateria agradece.
+      const isMobile = window.innerWidth < 640;
+      const ratio = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width * ratio;
@@ -56,10 +60,13 @@ export default function FallingPetals({ density = 26 }) {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      petals = Array.from({ length: density }, spawn);
+
+      const quantidade = isMobile ? Math.round(density * 0.45) : density;
+      petals = Array.from({ length: quantidade }, spawn);
     };
 
     const tick = () => {
+      if (pausado) return;
       ctx.clearRect(0, 0, width, height);
       for (const petal of petals) {
         petal.y += petal.speed;
@@ -80,13 +87,24 @@ export default function FallingPetals({ density = 26 }) {
       frame = requestAnimationFrame(tick);
     };
 
+    // sai da aba / bloqueia o celular -> para de desenhar
+    const onVisibility = () => {
+      pausado = document.hidden;
+      if (!pausado) {
+        cancelAnimationFrame(frame);
+        tick();
+      }
+    };
+
     resize();
     tick();
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [density]);
 

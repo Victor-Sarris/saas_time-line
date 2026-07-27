@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import TogetherCounter from "./TogetherCounter.jsx";
+import TogetherCounter, { hasStarted } from "./TogetherCounter.jsx";
 
 /** Carta selada no fim da página — ela clica no envelope pra abrir. */
 export default function FinalLetter({ config }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="relative px-6 pb-32">
+    <section className="relative px-5 pb-32 sm:px-6">
       <div className="mx-auto max-w-2xl text-center">
         <AnimatePresence mode="wait">
           {!open ? (
@@ -41,7 +41,7 @@ export default function FinalLetter({ config }) {
               initial={{ opacity: 0, y: 26, rotateX: -12 }}
               animate={{ opacity: 1, y: 0, rotateX: 0 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="paper-note relative rounded-3xl bg-cream/90 p-8 text-left shadow-2xl shadow-romance-300/50 ring-1 ring-romance-100 sm:p-12"
+              className="paper-note relative rounded-3xl bg-cream/90 p-6 text-left shadow-2xl shadow-romance-300/50 ring-1 ring-romance-100 sm:p-12"
             >
               <span
                 aria-hidden="true"
@@ -52,7 +52,7 @@ export default function FinalLetter({ config }) {
                 {config.letter_title}
               </h2>
 
-              <p className="mt-6 font-hand text-2xl leading-9 whitespace-pre-line text-romance-800 sm:text-3xl sm:leading-11">
+              <p className="mt-5 font-hand text-[1.4rem] leading-8 whitespace-pre-line text-romance-800 sm:mt-6 sm:text-3xl sm:leading-11">
                 {config.letter_body}
               </p>
 
@@ -60,7 +60,7 @@ export default function FinalLetter({ config }) {
                 — {config.his_name}
               </p>
 
-              {config.couple_since && (
+              {hasStarted(config.couple_since) && (
                 <div className="mt-10 border-t border-dashed border-romance-200 pt-8">
                   <TogetherCounter
                     since={config.couple_since}

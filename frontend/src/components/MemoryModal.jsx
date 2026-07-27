@@ -39,17 +39,17 @@ export default function MemoryModal({
 
   return (
     <Modal onClose={onClose} className="max-w-5xl overflow-hidden">
-      <div className="grid max-h-[85vh] grid-cols-1 overflow-y-auto md:grid-cols-[1.1fr_1fr] md:overflow-hidden">
+      <div className="grid max-h-[88dvh] grid-cols-1 overflow-y-auto overscroll-contain md:grid-cols-[1.1fr_1fr] md:overflow-hidden">
         <div className="relative bg-romance-950/95">
           <img
             src={memory.image_url}
             alt={memory.title}
-            className="max-h-[42vh] w-full object-contain md:max-h-[85vh]"
+            className="max-h-[38dvh] w-full object-contain md:max-h-[88dvh]"
           />
           <button
             type="button"
             onClick={() => onToggleFavorite(memory.id)}
-            className="absolute top-4 left-4 cursor-pointer rounded-full bg-cream/90 px-3 py-2 text-lg shadow-md transition hover:scale-110"
+            className="absolute top-3 left-3 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-cream/90 text-xl shadow-md transition hover:scale-110 sm:top-4 sm:left-4 sm:h-10 sm:w-10 sm:text-lg"
             title={
               memory.is_favorite
                 ? "Tirar dos favoritos"
@@ -60,7 +60,7 @@ export default function MemoryModal({
           </button>
         </div>
 
-        <div className="flex flex-col gap-5 overflow-y-auto p-6 sm:p-8">
+        <div className="flex flex-col gap-5 overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:p-8">
           <div>
             <p className="text-[11px] tracking-[0.28em] text-romance-400 uppercase">
               {formatLongDate(memory.happened_on)}
@@ -122,7 +122,7 @@ export default function MemoryModal({
                   key={value}
                   type="button"
                   onClick={() => setAuthor(value)}
-                  className={`cursor-pointer rounded-full px-3 py-1.5 text-xs transition ${
+                  className={`cursor-pointer rounded-full px-4 py-2.5 text-sm transition sm:px-3 sm:py-1.5 sm:text-xs ${
                     author === value
                       ? "bg-romance-600 text-cream shadow-md"
                       : "bg-romance-50 text-romance-500 ring-1 ring-romance-100 hover:bg-romance-100"
@@ -155,7 +155,11 @@ export default function MemoryModal({
                 onClick={() =>
                   confirmDelete ? onDelete(memory.id) : setConfirmDelete(true)
                 }
-                className="cursor-pointer rounded-full px-3 py-2.5 text-xs text-romance-300 transition hover:text-romance-600"
+                className={`shrink-0 cursor-pointer rounded-full px-4 py-3 text-xs whitespace-nowrap transition ${
+                  confirmDelete
+                    ? "bg-romance-100 text-romance-700"
+                    : "text-romance-300 hover:text-romance-600"
+                }`}
               >
                 {confirmDelete ? "confirmar exclusão?" : "apagar"}
               </button>

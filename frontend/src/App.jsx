@@ -76,7 +76,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh overflow-x-hidden">
       <FallingPetals />
 
       <AnimatePresence>
@@ -90,14 +90,15 @@ export default function App() {
 
         {/* filtros */}
         {memories.length > 0 || filter !== "todos" ? (
-          <div className="sticky top-0 z-40 mb-8 flex justify-center px-4 py-3">
-            <div className="glass flex flex-wrap justify-center gap-1.5 rounded-full p-1.5 shadow-lg shadow-romance-200/50">
+          <div className="sticky top-0 z-40 mb-6 flex justify-center px-3 py-3 sm:mb-8 sm:px-4">
+            {/* no celular a barra rola de lado em vez de quebrar em duas linhas */}
+            <div className="glass hide-scrollbar flex max-w-full snap-x gap-1.5 overflow-x-auto rounded-full p-1.5 shadow-lg shadow-romance-200/50">
               {FILTERS.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setFilter(item.id)}
-                  className={`cursor-pointer rounded-full px-4 py-1.5 text-xs transition ${
+                  className={`shrink-0 snap-center cursor-pointer rounded-full px-4 py-2.5 text-sm whitespace-nowrap transition sm:py-1.5 sm:text-xs ${
                     filter === item.id
                       ? "bg-romance-600 text-cream shadow-md"
                       : "text-romance-500 hover:bg-romance-100"
@@ -167,7 +168,7 @@ export default function App() {
         whileHover={{ scale: 1.08, rotate: 90 }}
         whileTap={{ scale: 0.92 }}
         aria-label="Guardar um novo momento"
-        className="fixed right-5 bottom-5 z-50 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-romance-500 to-romance-700 text-3xl font-light text-cream shadow-xl shadow-romance-400/50"
+        className="bottom-safe fixed right-5 z-50 flex h-15 w-15 cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-romance-500 to-romance-700 text-3xl font-light text-cream shadow-xl shadow-romance-400/50 sm:h-14 sm:w-14"
       >
         +
       </motion.button>

@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 export default function Intro({ herName, onOpen }) {
   return (
     <motion.div
-      className="fixed inset-0 z-70 flex flex-col items-center justify-center gap-8 bg-linear-to-b from-romance-950 via-romance-900 to-romance-800 px-6 text-center"
+      className="fixed inset-0 z-70 flex min-h-dvh flex-col items-center justify-center gap-6 overflow-y-auto bg-linear-to-b from-romance-950 via-romance-900 to-romance-800 px-6 py-10 text-center sm:gap-8"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, filter: "blur(12px)" }}
       transition={{ duration: 1.1, ease: "easeInOut" }}
@@ -34,7 +34,7 @@ export default function Intro({ herName, onOpen }) {
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9, duration: 1 }}
-        className="font-display text-5xl leading-tight text-cream sm:text-7xl"
+        className="text-balance font-display text-[2.75rem] leading-tight text-cream sm:text-7xl"
       >
         {herName}
       </motion.h1>

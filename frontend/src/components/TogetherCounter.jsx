@@ -1,9 +1,36 @@
 import { useEffect, useState } from "react";
 
-function diffFrom(startISO) {
-  const [y, m, d] = startISO.split("-").map(Number);
-  const start = new Date(y, m - 1, d, 0, 0, 0);
-  const total = Math.max(0, Date.now() - start.getTime());
+/**
+ * Aceita "2026-08-04" ou "2026-08-04T20:30" (a hora exata do pedido).
+ * Sem hora, começa à meia-noite daquele dia.
+ */
+export function parseMoment(value) {
+  if (!value) return null;
+  const [datePart, timePart = ""] = String(value).trim().split(/[T ]/);
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) return null;
+
+  const [hour = 0, minute = 0, second = 0] = timePart
+    ? timePart.split(":").map(Number)
+    : [];
+
+  const moment = new Date(year, month - 1, day, hour || 0, minute || 0, second || 0);
+  return Number.isNaN(moment.getTime()) ? null : moment;
+}
+
+/** Já começou a contar? Serve pra decidir se o bloco aparece. */
+export function hasStarted(value) {
+  const moment = parseMoment(value);
+  return Boolean(moment) && moment.getTime() <= Date.now();
+}
+
+function diffFrom(value) {
+  const start = parseMoment(value);
+  if (!start) return null;
+
+  const total = Date.now() - start.getTime();
+  if (total < 0) return null; // ainda não chegou a hora
+
   const seconds = Math.floor(total / 1000);
   return {
     dias: Math.floor(seconds / 86400),
@@ -13,13 +40,18 @@ function diffFrom(startISO) {
   };
 }
 
-/** Contador ao vivo desde a data em que vocês começaram. */
+/**
+ * Contador ao vivo desde o momento em que vocês começaram.
+ * Enquanto a data não chega, ele simplesmente não aparece — melhor do que
+ * mostrar 00 00 00 00 e parecer quebrado.
+ */
 export default function TogetherCounter({ since, label = "juntos há" }) {
-  const [elapsed, setElapsed] = useState(() => (since ? diffFrom(since) : null));
+  const [elapsed, setElapsed] = useState(() => diffFrom(since));
 
   useEffect(() => {
     if (!since) return;
     setElapsed(diffFrom(since));
+    // segue rodando mesmo antes da hora, pra aparecer sozinho na virada
     const id = setInterval(() => setElapsed(diffFrom(since)), 1000);
     return () => clearInterval(id);
   }, [since]);

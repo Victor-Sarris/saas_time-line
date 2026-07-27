@@ -61,15 +61,18 @@ Tudo que é texto vive no `backend/.env` — não precisa mexer em código:
 | ---------------------- | ------------------------------------------------------- |
 | `HER_NAME`             | O nome dela (aparece na abertura e no rodapé)            |
 | `HIS_NAME`             | O seu nome (assina a carta final)                        |
-| `COUPLE_SINCE`         | `AAAA-MM-DD` do dia do pedido — liga o contador ao vivo  |
+| `COUPLE_SINCE`         | `AAAA-MM-DD` ou `AAAA-MM-DDTHH:MM` — liga o contador     |
 | `HERO_TITLE`           | Título grandão da capa                                   |
 | `HERO_SUBTITLE`        | Frase logo abaixo do título                              |
 | `LETTER_TITLE`         | Título da carta selada no fim da página                  |
 | `LETTER_BODY`          | O texto da carta                                         |
 | `SPOTIFY_PLAYLIST_URL` | Link normal da playlist (o backend converte pro embed)   |
 
-> Deixe `COUPLE_SINCE` vazio até o grande dia. Depois que ela disser sim, você
-> preenche a data, reinicia o `runserver` e o contador começa a rodar. 😌
+> **Sobre o `COUPLE_SINCE`:** enquanto o momento não chega, o contador
+> simplesmente não aparece — nada de `00 00 00 00` na tela parecendo defeito.
+> Ele surge sozinho na virada e começa a correr. Se quiser que a contagem
+> comece na hora exata do pedido, e não à meia-noite, use
+> `COUPLE_SINCE=2026-08-04T20:30`.
 
 **Playlist do Spotify:** no app, clique na playlist → `...` → Compartilhar → Copiar
 link, e cole em `SPOTIFY_PLAYLIST_URL`. Funciona com playlist, álbum ou música.

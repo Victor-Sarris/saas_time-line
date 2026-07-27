@@ -6,7 +6,7 @@ export default function Hero({ config, summary }) {
   const total = summary?.total_memories ?? 0;
 
   return (
-    <header className="relative flex min-h-[92vh] flex-col items-center justify-center gap-8 px-6 py-24 text-center">
+    <header className="relative flex min-h-[92dvh] flex-col items-center justify-center gap-7 px-6 py-20 text-center sm:gap-8 sm:py-24">
       <motion.span
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -20,7 +20,7 @@ export default function Hero({ config, summary }) {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.15 }}
-        className="text-gradient-romance max-w-3xl font-display text-5xl leading-[1.08] font-semibold sm:text-7xl"
+        className="text-gradient-romance max-w-3xl text-balance font-display text-[2.6rem] leading-[1.08] font-semibold sm:text-7xl"
       >
         {config.hero_title}
       </motion.h1>
@@ -29,7 +29,7 @@ export default function Hero({ config, summary }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.35 }}
-        className="max-w-xl text-lg leading-relaxed text-romance-900/70"
+        className="max-w-xl text-pretty text-base leading-relaxed text-romance-900/70 sm:text-lg"
       >
         {config.hero_subtitle}
       </motion.p>
@@ -58,7 +58,7 @@ export default function Hero({ config, summary }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1 }}
-        className="group absolute bottom-8 flex flex-col items-center gap-2 text-romance-500"
+        className="group absolute bottom-6 flex flex-col items-center gap-1.5 py-2 text-romance-500 sm:bottom-8 sm:gap-2"
       >
         <span className="font-hand text-lg">role para começar</span>
         <motion.span
