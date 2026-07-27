@@ -163,45 +163,20 @@ cd frontend && npm run build             # checa o build de produção
 
 ## Hospedando
 
-O projeto já está pronto pra sair do seu PC.
+O passo a passo completo está no **[DEPLOY.md](DEPLOY.md)** — Vercel (frontend e
+backend) + Neon (banco), tudo no plano grátis e sem cartão.
 
-**Banco.** Sem `DATABASE_URL` ele usa SQLite local. Coloque a URL do Postgres na
-variável de ambiente e ele muda sozinho — não precisa tocar em código:
-
-```
-DATABASE_URL=postgres://usuario:senha@host:5432/banco
-DATABASE_SSL_REQUIRE=True
-```
-
-Serviços com Postgres grátis: Neon, Supabase, Railway, Render.
-
-**Backend** (Railway / Render / Fly):
-
-```bash
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py collectstatic --noinput
-gunicorn core.wsgi --bind 0.0.0.0:$PORT
-```
-
-Variáveis obrigatórias lá:
-
-```
-DJANGO_SECRET_KEY=<gere uma chave longa e aleatória>
-DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=seu-backend.up.railway.app
-CORS_ALLOWED_ORIGINS=https://seu-site.vercel.app
-DATABASE_URL=<a url do postgres>
-```
+Resumo: sem `DATABASE_URL` o projeto usa SQLite local; com ela, vira Postgres
+sozinho. Em serverless, lembre de `DJANGO_CONN_MAX_AGE=0` e de usar a connection
+string **pooled** do Neon — o resto o `settings.py` detecta sozinho, inclusive
+desligar os cursores de servidor que o PgBouncer não suporta.
 
 Com `DJANGO_DEBUG=False` o projeto já liga HTTPS, HSTS, cookies seguros e o
 WhiteNoise pros arquivos do admin. `python manage.py check --deploy` passa limpo.
 
-**Frontend** (Vercel / Netlify): build `npm run build`, pasta `dist`, e uma variável:
-
-```
-VITE_API_URL=https://seu-backend.up.railway.app/api
-```
+Como as fotos ficam no banco, o upload precisa caber no limite de ~4,5 MB por
+requisição das funções serverless — por isso o frontend **comprime a imagem no
+navegador** (1600px, WEBP, ~200 KB) antes de enviar.
 
 **Não esqueça:** faça backup do banco. As memórias de vocês estão todas lá dentro —
 fotos inclusive. Um `pg_dump` de vez em quando resolve. 💗

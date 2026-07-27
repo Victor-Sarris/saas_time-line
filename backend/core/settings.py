@@ -26,7 +26,11 @@ def env_list(key, default=""):
 
 SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-nossa-timeline-troque-em-producao")
 DEBUG = env_bool("DJANGO_DEBUG", True)
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0")
+ALLOWED_HOSTS = env_list(
+    "DJANGO_ALLOWED_HOSTS",
+    # ".vercel.app" cobre o domínio que a Vercel gera e os previews
+    "localhost,127.0.0.1,0.0.0.0,.vercel.app",
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -73,19 +77,30 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # Sem DATABASE_URL (ou com ele vazio) -> SQLite aqui do lado.
-# Com DATABASE_URL (Railway, Render, Neon, Supabase...) -> Postgres,
+# Com DATABASE_URL (Neon, Railway, Render, Supabase...) -> Postgres,
 # sem mexer em nada no código.
 DATABASE_URL = env("DATABASE_URL", "").strip()
+
+# Em servidor comum, segurar a conexão aberta economiza tempo (600s).
+# Em serverless (Vercel & cia), cada instância seguraria uma conexão e o
+# banco esgota: lá isto tem que ser 0.
+CONN_MAX_AGE = int(env("DJANGO_CONN_MAX_AGE", "600"))
 
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
+            conn_max_age=CONN_MAX_AGE,
+            conn_health_checks=CONN_MAX_AGE > 0,
             ssl_require=env_bool("DATABASE_SSL_REQUIRE", False),
         )
     }
+    # O pooler do Neon (host com "-pooler") é um PgBouncer em modo transaction,
+    # que não sabe lidar com cursores do lado do servidor. Detecta sozinho.
+    usa_pooler = "-pooler" in DATABASE_URL or "pgbouncer" in DATABASE_URL
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = env_bool(
+        "DISABLE_SERVER_SIDE_CURSORS", usa_pooler
+    )
 else:
     DATABASES = {
         "default": {
@@ -140,7 +155,15 @@ CORS_ALLOWED_ORIGINS = env_list(
     "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
 )
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
+# Sem isso o login do /admin falha em produção com "CSRF verification failed".
+CSRF_TRUSTED_ORIGINS = list(
+    dict.fromkeys(
+        [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith("http")]
+        + env_list("CSRF_TRUSTED_ORIGINS", "")
+        + ["https://*.vercel.app"]
+    )
+)
 
 # ---------------------------------------------------------------------------
 # Producao: so liga quando DJANGO_DEBUG=False

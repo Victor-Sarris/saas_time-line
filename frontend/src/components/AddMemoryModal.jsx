@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import Modal from "./Modal.jsx";
+import { compressImage, formatBytes } from "../utils/compressImage.js";
 import { todayISO } from "../utils/format.js";
+
+// funções serverless recusam corpo acima de ~4,5MB
+const HARD_LIMIT = 4.2 * 1024 * 1024;
 
 const AUTHORS = ["ele", "ela", "nos"];
 const EMPTY = {
@@ -16,6 +20,8 @@ const EMPTY = {
 export default function AddMemoryModal({ config, onClose, onCreate }) {
   const [form, setForm] = useState(EMPTY);
   const [file, setFile] = useState(null);
+  const [sizes, setSizes] = useState(null); // { antes, depois }
+  const [optimizing, setOptimizing] = useState(false);
   const [preview, setPreview] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
@@ -41,21 +47,37 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const update = (field) => (event) =>
     setForm((current) => ({ ...current, [field]: event.target.value }));
 
-  const pickFile = (candidate) => {
+  const pickFile = async (candidate) => {
     if (!candidate) return;
     if (!candidate.type.startsWith("image/")) {
       setError("Esse arquivo não é uma imagem. 🥺");
       return;
     }
+
     setError("");
-    setFile(candidate);
+    setOptimizing(true);
+    try {
+      const otimizada = await compressImage(candidate);
+      setFile(otimizada);
+      setSizes({ antes: candidate.size, depois: otimizada.size });
+      if (otimizada.size > HARD_LIMIT) {
+        setError(
+          "Essa foto ficou pesada demais mesmo depois de otimizada. Tenta uma outra?"
+        );
+      }
+    } finally {
+      setOptimizing(false);
+    }
   };
 
   const submit = async (event) => {
     event.preventDefault();
     if (saving) return;
 
+    if (optimizing) return setError("Só um segundo, ainda estou otimizando a foto.");
     if (!file) return setError("Escolhe uma foto pra essa memória.");
+    if (file.size > HARD_LIMIT)
+      return setError("Essa foto é pesada demais pro envio. Tenta uma outra?");
     if (!form.title.trim()) return setError("Dá um nome pra esse momento. ✨");
 
     const payload = new FormData();
@@ -103,19 +125,43 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
                 : "border-romance-200 bg-white/60 hover:border-romance-400 hover:bg-romance-50"
             }`}
           >
-            {preview ? (
-              <img
-                src={preview}
-                alt="pré-visualização"
-                className="max-h-64 w-full rounded-xl object-contain"
-              />
+            {optimizing ? (
+              <>
+                <span className="animate-heartbeat text-4xl">💗</span>
+                <p className="text-sm text-romance-500">otimizando a foto...</p>
+              </>
+            ) : preview ? (
+              <>
+                <img
+                  src={preview}
+                  alt="pré-visualização"
+                  className="max-h-56 w-full rounded-xl object-contain"
+                />
+                {sizes && (
+                  <p className="text-xs text-romance-400">
+                    {sizes.depois < sizes.antes ? (
+                      <>
+                        {formatBytes(sizes.antes)} →{" "}
+                        <strong className="text-romance-600">
+                          {formatBytes(sizes.depois)}
+                        </strong>{" "}
+                        ✨
+                      </>
+                    ) : (
+                      formatBytes(sizes.depois)
+                    )}
+                  </p>
+                )}
+              </>
             ) : (
               <>
                 <span className="text-4xl">📸</span>
                 <p className="text-sm text-romance-500">
                   Arraste a foto aqui ou clique para escolher
                 </p>
-                <p className="text-xs text-romance-300">JPG, PNG ou WEBP</p>
+                <p className="text-xs text-romance-300">
+                  JPG, PNG ou WEBP — otimizo o tamanho pra você
+                </p>
               </>
             )}
             <input
@@ -222,10 +268,14 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
           </button>
           <button
             type="submit"
-            disabled={saving}
-            className="flex-1 cursor-pointer rounded-full bg-romance-600 px-6 py-3 font-medium text-cream shadow-lg shadow-romance-300/60 transition hover:bg-romance-700 disabled:opacity-50"
+            disabled={saving || optimizing}
+            className="flex-1 cursor-pointer rounded-full bg-romance-600 px-6 py-3 font-medium text-cream shadow-lg shadow-romance-300/60 transition hover:bg-romance-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving ? "guardando..." : "guardar na nossa timeline 💗"}
+            {saving
+              ? "guardando..."
+              : optimizing
+                ? "otimizando..."
+                : "guardar na nossa timeline 💗"}
           </button>
         </div>
       </form>
