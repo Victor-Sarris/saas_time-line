@@ -28,7 +28,10 @@ export default function SpotifyPlayer({ embedUrl, started = false }) {
   };
 
   return (
-    <div className="bottom-safe fixed left-5 z-50 flex flex-col items-start gap-3">
+    // O contêiner é invisível mas tem a largura do painel (~toda a tela do
+    // celular na vertical), e estava engolindo os toques no botão "+" do canto
+    // oposto. Ele não recebe mais eventos; só os filhos de verdade recebem.
+    <div className="bottom-safe pointer-events-none fixed left-5 z-50 flex flex-col items-start gap-3">
       <motion.div
         initial={false}
         animate={
@@ -39,7 +42,7 @@ export default function SpotifyPlayer({ embedUrl, started = false }) {
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         aria-hidden={!open}
         className={`w-[min(23rem,calc(100vw-2.5rem))] overflow-hidden ${
-          open ? "" : "pointer-events-none"
+          open ? "pointer-events-auto" : "pointer-events-none"
         }`}
       >
         <div className="rounded-3xl bg-cream/95 p-3 shadow-2xl shadow-romance-900/30 ring-1 ring-romance-200 backdrop-blur-md">
@@ -73,7 +76,7 @@ export default function SpotifyPlayer({ embedUrl, started = false }) {
             ? "A música continua tocando 💗"
             : "Nossa playlist"
         }
-        className="relative flex h-15 w-15 cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-romance-500 to-romance-700 text-2xl text-cream shadow-xl shadow-romance-400/50 sm:h-14 sm:w-14"
+        className="pointer-events-auto relative flex h-15 w-15 cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-romance-500 to-romance-700 text-2xl text-cream shadow-xl shadow-romance-400/50 sm:h-14 sm:w-14"
       >
         <motion.span
           animate={everOpened ? { rotate: 360 } : { rotate: 0 }}

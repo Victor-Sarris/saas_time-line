@@ -25,7 +25,16 @@ export default function Modal({ onClose, children, className = "" }) {
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       Object.assign(body.style, anterior);
+
+      // Ao soltar o "position: fixed" o navegador cai no topo, e o
+      // "scroll-behavior: smooth" do html fazia a volta virar uma animação:
+      // a página deslizava sozinha até o card que tinha sido aberto.
+      // Aqui a volta precisa ser instantânea.
+      const html = document.documentElement;
+      const comportamento = html.style.scrollBehavior;
+      html.style.scrollBehavior = "auto";
       window.scrollTo(0, scrollY);
+      html.style.scrollBehavior = comportamento;
     };
   }, [onClose]);
 
