@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 import { AUTHOR_LABELS, formatLongDate } from "../utils/format.js";
-
+// nomes personalizados
 const AUTHOR_STYLES = {
   Sarrís: "bg-sky-100/80 text-sky-700",
   Sabrina: "bg-romance-100 text-romance-700",
