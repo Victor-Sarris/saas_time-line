@@ -7,13 +7,13 @@ import { todayISO } from "../utils/format.js";
 // funções serverless recusam corpo acima de ~4,5MB
 const HARD_LIMIT = 4.2 * 1024 * 1024;
 
-const AUTHORS = ["ele", "ela", "nos"];
+const AUTHORS = ["Sarrís", "Sabrina", "nos"];
 const EMPTY = {
   title: "",
   note: "",
   happened_on: todayISO(),
   location: "",
-  author: "ele",
+  author: "Sarrís",
   is_favorite: false,
 };
 
@@ -29,8 +29,8 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const inputRef = useRef(null);
 
   const names = {
-    ele: config?.his_name || "Ele",
-    ela: config?.her_name || "Ela",
+    Sarrís: config?.his_name || "Sarrís",
+    Sabrina: config?.her_name || "Sabrina",
     nos: "Nós dois",
   };
 
@@ -62,7 +62,7 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
       setSizes({ antes: candidate.size, depois: otimizada.size });
       if (otimizada.size > HARD_LIMIT) {
         setError(
-          "Essa foto ficou pesada demais mesmo depois de otimizada. Tenta uma outra?"
+          "Essa foto ficou pesada demais mesmo depois de otimizada. Tenta uma outra?",
         );
       }
     } finally {
@@ -74,7 +74,8 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
     event.preventDefault();
     if (saving) return;
 
-    if (optimizing) return setError("Só um segundo, ainda estou otimizando a foto.");
+    if (optimizing)
+      return setError("Só um segundo, ainda estou otimizando a foto.");
     if (!file) return setError("Escolhe uma foto pra essa memória.");
     if (file.size > HARD_LIMIT)
       return setError("Essa foto é pesada demais pro envio. Tenta uma outra?");
