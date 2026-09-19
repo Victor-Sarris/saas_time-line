@@ -29,8 +29,8 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const inputRef = useRef(null);
 
   const names = {
-    Sarrís: config?.his_name || "ele",
-    Sabrina: config?.her_name || "ela",
+    ele: config?.his_name || "Ele",
+    ela: config?.her_name || "Ela",
     nos: "Nós dois",
   };
 
