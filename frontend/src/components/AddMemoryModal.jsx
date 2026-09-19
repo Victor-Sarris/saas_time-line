@@ -7,13 +7,13 @@ import { todayISO } from "../utils/format.js";
 // funções serverless recusam corpo acima de ~4,5MB
 const HARD_LIMIT = 4.2 * 1024 * 1024;
 
-const AUTHORS = ["Sarrís", "Sabrina", "nos"];
+const AUTHORS = ["ele", "ela", "nos"];
 const EMPTY = {
   title: "",
   note: "",
   happened_on: todayISO(),
   location: "",
-  author: "Sarrís",
+  author: "ele",
   is_favorite: false,
 };
 
@@ -29,8 +29,8 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const inputRef = useRef(null);
 
   const names = {
-    Sarrís: config?.his_name || "Sarrís",
-    Sabrina: config?.her_name || "Sabrina",
+    Sarrís: config?.his_name || "ele",
+    Sabrina: config?.her_name || "ela",
     nos: "Nós dois",
   };
 
