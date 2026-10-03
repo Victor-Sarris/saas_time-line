@@ -27,6 +27,8 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const inputRef = useRef(null);
+  const [isTimeCapsule, setIsTimeCapsule] = useState(false);
+  const [unlockDate, setUnlockDate] = useState("");
 
   const names = {
     ele: config?.his_name || "Ele",
@@ -71,7 +73,8 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   };
 
   const submit = async (event) => {
-    event.preventDefault();
+    e.preventDefault();
+    const formData = new FormData();
     if (saving) return;
 
     if (optimizing)
@@ -80,6 +83,9 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
     if (file.size > HARD_LIMIT)
       return setError("Essa foto é pesada demais pro envio. Tenta uma outra?");
     if (!form.title.trim()) return setError("Dá um nome pra esse momento. ✨");
+    if (isTimeCapsule && unlockDate) {
+      formData.append("unlock_date", new Date(unlockDate).toISOString());
+    }
 
     const payload = new FormData();
     Object.entries(form).forEach(([key, value]) => payload.append(key, value));
@@ -287,6 +293,30 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
                 : "guardar na nossa timeline 💗"}
           </button>
         </div>
+        <div className="time-capsule-toggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={isTimeCapsule}
+              onChange={(e) => setIsTimeCapsule(e.target.checked)}
+            />
+            Transformar em Cápsula do Tempo?
+          </label>
+        </div>
+
+        {isTimeCapsule && (
+          <div className="input-group">
+            <label>Quando esta memória deve ser revelada?</label>
+            <input
+              type="datetime-local"
+              value={unlockDate}
+              onChange={(e) => setUnlockDate(e.target.value)}
+              required
+            />
+          </div>
+        )}
+
+        <button type="submit">Salvar Memória</button>
       </form>
     </Modal>
   );
