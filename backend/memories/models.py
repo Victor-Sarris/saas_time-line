@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Author(models.TextChoices):
@@ -15,6 +16,7 @@ class Memory(models.Model):
     permite hospedar em Railway/Render/Fly sem perder as imagens quando
     o container reinicia — nesses lugares o sistema de arquivos é efêmero.
     """
+
 
     title = models.CharField("título", max_length=140)
     note = models.TextField("anotação", blank=True)
@@ -37,6 +39,8 @@ class Memory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    unlock_date = models.DateTimeField(null=True, blank=True, help_text="Se definido, a memória só poderá ser vista após esta data.")
+
     class Meta:
         ordering = ["happened_on", "created_at"]
         verbose_name = "memória"
@@ -56,6 +60,12 @@ class Memory(models.Model):
         """Copia o resultado de imaging.process_upload() para o objeto."""
         for field, value in processed.items():
             setattr(self, field, value)
+
+    @property
+    def is_locked(self):
+        if self.unlock_date:
+            return timezone.now() < self.unlock_date
+        return False
 
 
 class Annotation(models.Model):

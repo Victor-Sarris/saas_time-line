@@ -109,6 +109,27 @@ class MemorySerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    is_locked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Memory
+        fields = '__all__'  # ou a lista dos seus campos, adicionando 'is_locked' e 'unlock_date'
+
+    def get_is_locked(self, obj):
+        return obj.is_locked
+
+    def to_representation(self, instance):
+        """Oculta dados sensíveis se a memória estiver trancada."""
+        data = super().to_representation(instance)
+
+        if instance.is_locked:
+            # Oculta a descrição e a imagem original
+            data['description'] = "Esta é uma Cápsula do Tempo! O conteúdo está guardado a sete chaves."
+            data['image'] = None  # Ou você pode passar a URL de uma imagem de "cadeado" padrão
+            # Mantenha o título ou mude-o para "Memória Trancada", se preferir
+
+        return data
+
 
 class MemoryUpdateSerializer(MemorySerializer):
     """Na edição a foto é opcional — dá pra só mexer no texto."""
