@@ -87,3 +87,11 @@ class Annotation(models.Model):
 
     def __str__(self):
         return f"{self.get_author_display()}: {self.text[:40]}"
+
+class MemoryImage(models.Model):
+    memory = models.ForeignKey('Memory', on_delete=models.CASCADE, related_name='gallery')
+    image = models.ImageField(upload_to='memories/gallery/%Y/%m/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Foto adicional para {self.memory.title}"

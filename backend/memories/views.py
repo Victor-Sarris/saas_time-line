@@ -9,7 +9,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
-from .models import Annotation, Memory
+from .models import Annotation, Memory, MemoryImage
 from .serializers import (
     AnnotationSerializer,
     MemorySerializer,
@@ -92,6 +92,15 @@ class MemoryViewSet(viewsets.ModelViewSet):
             }
         )
 
+    def perform_create(self, serializer):
+        # Guarda a memória (com a imagem principal)
+        memory = serializer.save()
+
+        # Vai buscar a lista de imagens extra enviadas no FormData
+        gallery_files = self.request.FILES.getlist('gallery')
+
+        for file in gallery_files:
+            MemoryImage.objects.create(memory=memory, image=file)
 
 class AnnotationViewSet(viewsets.ModelViewSet):
     queryset = Annotation.objects.select_related("memory").all()

@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from .imaging import process_upload
-from .models import Annotation, Memory
+from .models import Annotation, Memory, MemoryImage
 
 
 class AnnotationSerializer(serializers.ModelSerializer):
@@ -21,6 +21,10 @@ class AnnotationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Escreve alguma coisa, vai. 💌")
         return value
 
+class MemoryImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MemoryImage
+        fields = ['id', 'image']
 
 class MemorySerializer(serializers.ModelSerializer):
     # entra o arquivo cru, sai a URL de quem serve os bytes do banco
@@ -30,27 +34,11 @@ class MemorySerializer(serializers.ModelSerializer):
     aspect_ratio = serializers.FloatField(read_only=True)
     author_display = serializers.CharField(source="get_author_display", read_only=True)
     annotations = AnnotationSerializer(many=True, read_only=True)
+    gallery = MemoryImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Memory
-        fields = [
-            "id",
-            "title",
-            "note",
-            "happened_on",
-            "location",
-            "author",
-            "author_display",
-            "is_favorite",
-            "image",
-            "image_url",
-            "thumb_url",
-            "image_width",
-            "image_height",
-            "aspect_ratio",
-            "annotations",
-            "created_at",
-        ]
+        fields = '__all__'
         read_only_fields = [
             "id",
             "created_at",
