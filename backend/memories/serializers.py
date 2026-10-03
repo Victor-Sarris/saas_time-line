@@ -22,9 +22,24 @@ class AnnotationSerializer(serializers.ModelSerializer):
         return value
 
 class MemoryImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    thumb_url = serializers.SerializerMethodField()
+
     class Meta:
         model = MemoryImage
-        fields = ['id', 'image']
+        fields = ['id', 'image_url', 'thumb_url']
+
+    def _absolute(self, view_name, obj):
+        path = reverse(view_name, args=[obj.pk])
+        request = self.context.get("request")
+        url = f"{path}?v={obj.image_hash[:12]}" if obj.image_hash else path
+        return request.build_absolute_uri(url) if request else url
+
+    def get_image_url(self, obj):
+        return self._absolute("gallery-image", obj)
+
+    def get_thumb_url(self, obj):
+        return self._absolute("gallery-thumb", obj)
 
 class MemorySerializer(serializers.ModelSerializer):
     # entra o arquivo cru, sai a URL de quem serve os bytes do banco
@@ -99,23 +114,17 @@ class MemorySerializer(serializers.ModelSerializer):
 
     is_locked = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Memory
-        fields = '__all__'  # ou a lista dos seus campos, adicionando 'is_locked' e 'unlock_date'
-
     def get_is_locked(self, obj):
         return obj.is_locked
 
     def to_representation(self, instance):
-        """Oculta dados sensíveis se a memória estiver trancada."""
         data = super().to_representation(instance)
-
         if instance.is_locked:
-            # Oculta a descrição e a imagem original
-            data['description'] = "Esta é uma Cápsula do Tempo! O conteúdo está guardado a sete chaves."
-            data['image'] = None  # Ou você pode passar a URL de uma imagem de "cadeado" padrão
-            # Mantenha o título ou mude-o para "Memória Trancada", se preferir
-
+            # Usa os nomes corretos devolvidos pela sua API
+            data['note'] = "Esta é uma Cápsula do Tempo! O conteúdo está guardado a sete chaves."
+            data['image_url'] = None
+            data['thumb_url'] = None
+            data['gallery'] = []
         return data
 
 

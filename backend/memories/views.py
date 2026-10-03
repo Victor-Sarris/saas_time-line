@@ -93,14 +93,22 @@ class MemoryViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        # Guarda a memória (com a imagem principal)
         memory = serializer.save()
-
-        # Vai buscar a lista de imagens extra enviadas no FormData
         gallery_files = self.request.FILES.getlist('gallery')
 
+        from .imaging import process_upload
         for file in gallery_files:
-            MemoryImage.objects.create(memory=memory, image=file)
+            try:
+                processed = process_upload(file)
+                MemoryImage.objects.create(
+                    memory=memory,
+                    image_data=processed["image_data"],
+                    thumb_data=processed["thumb_data"],
+                    image_mime=processed["image_mime"],
+                    image_hash=processed["image_hash"]
+                )
+            except ValueError:
+                continue  # Ignora arquivos inválidos
 
 class AnnotationViewSet(viewsets.ModelViewSet):
     queryset = Annotation.objects.select_related("memory").all()
@@ -193,3 +201,41 @@ def _to_spotify_embed(url: str) -> str:
             item_id = clean.split(marker)[-1]
             return f"https://open.spotify.com/embed/{kind}/{item_id}"
     return clean
+
+
+def _serve_gallery_blob(request, pk, field):
+    row = (
+        MemoryImage.objects.filter(pk=pk)
+        .values(field, "image_mime", "image_hash")
+        .first()
+    )
+    if row is None:
+        raise Http404("Essa foto da galeria não existe.")
+
+    data = bytes(row[field] or b"")
+    if not data:
+        raise Http404("Essa foto da galeria está vazia.")
+
+    etag = f'"{row["image_hash"]}-{field}"'
+    if request.headers.get("If-None-Match") == etag:
+        return HttpResponseNotModified()
+
+    response = HttpResponse(data, content_type=row["image_mime"] or "image/webp")
+    response["ETag"] = etag
+    response["Content-Length"] = str(len(data))
+    response["Cache-Control"] = (
+        "public, max-age=31536000, immutable"
+        if request.GET.get("v")
+        else "public, max-age=300"
+    )
+    return response
+
+
+@require_GET
+def gallery_image(request, pk):
+    return _serve_gallery_blob(request, pk, "image_data")
+
+
+@require_GET
+def gallery_thumb(request, pk):
+    return _serve_gallery_blob(request, pk, "thumb_data")

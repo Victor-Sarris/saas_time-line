@@ -90,7 +90,10 @@ class Annotation(models.Model):
 
 class MemoryImage(models.Model):
     memory = models.ForeignKey('Memory', on_delete=models.CASCADE, related_name='gallery')
-    image = models.ImageField(upload_to='memories/gallery/%Y/%m/')
+    image_data = models.BinaryField("foto (bytes)", editable=False)
+    thumb_data = models.BinaryField("miniatura (bytes)", editable=False)
+    image_mime = models.CharField(max_length=40, default="image/webp")
+    image_hash = models.CharField(max_length=64, blank=True, db_index=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
