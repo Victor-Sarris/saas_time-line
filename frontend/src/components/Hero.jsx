@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
+import ExportBookButton from "./ExportBookButton.jsx";
 
 import TogetherCounter from "./TogetherCounter.jsx";
 
-export default function Hero({ config, summary }) {
+export default function Hero({ config, summary, memories }) {
   const total = summary?.total_memories ?? 0;
 
   return (
@@ -51,6 +52,10 @@ export default function Hero({ config, summary }) {
         >
           {total} {total === 1 ? "momento guardado" : "momentos guardados"}
         </motion.p>
+      )}
+
+      {memories?.length > 0 && (
+        <ExportBookButton memories={memories} config={config} />
       )}
 
       <motion.a

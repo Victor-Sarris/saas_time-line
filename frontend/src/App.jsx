@@ -86,7 +86,7 @@ export default function App() {
       </AnimatePresence>
 
       <main className="relative z-10">
-        <Hero config={config} summary={summary} />
+        <Hero config={config} summary={summary} memories={memories} />
 
         {/* filtros */}
         {memories.length > 0 || filter !== "todos" ? (

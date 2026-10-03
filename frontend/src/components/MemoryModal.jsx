@@ -84,7 +84,7 @@ export default function MemoryModal({
                 {memory.gallery.map((foto) => (
                   <a
                     key={foto.id}
-                    href={foto.image_url} // <--- Mudou para image_url
+                    href={foto.image_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="shrink-0 snap-center cursor-pointer"
