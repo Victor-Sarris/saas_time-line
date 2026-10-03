@@ -11,6 +11,8 @@ import SpotifyPlayer from "./components/SpotifyPlayer.jsx";
 import Timeline from "./components/Timeline.jsx";
 import Toast from "./components/Toast.jsx";
 import { useTimeline } from "./hooks/useTimeline.js";
+import BackgroundEffects from "./components/BackgroundEffects.jsx";
+import ThemeSelector from "./components/ThemeSelector.jsx";
 
 const FILTERS = [
   { id: "todos", label: "tudo" },
@@ -26,6 +28,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState("");
+  const [backgroundEffect, setBackgroundEffect] = useState("hearts");
 
   const query = useMemo(() => {
     if (filter === "favoritos") return { favorites: "1" };
@@ -77,16 +80,24 @@ export default function App() {
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      <FallingPetals />
+      {/* SUBSTITUA O FallingPetals PELO NOVO COMPONENTE */}
+      <BackgroundEffects effectType={backgroundEffect} />
 
       <AnimatePresence>
         {!opened && (
           <Intro herName={config.her_name} onOpen={() => setOpened(true)} />
         )}
       </AnimatePresence>
-
       <main className="relative z-10">
         <Hero config={config} summary={summary} memories={memories} />
+
+        {/* INCLUA O SELETOR DE TEMAS AQUI (Entre o Hero e os filtros) */}
+        {opened && (
+          <ThemeSelector
+            currentEffect={backgroundEffect}
+            onEffectChange={setBackgroundEffect}
+          />
+        )}
 
         {/* filtros */}
         {memories.length > 0 || filter !== "todos" ? (
