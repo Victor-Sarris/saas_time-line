@@ -70,14 +70,35 @@ export default function MemoryModal({
               {memory.title}
             </h2>
             <p className="mt-1 text-xs text-romance-400">
-              guardado por {names[memory.author] ?? AUTHOR_LABELS[memory.author]}
+              guardado por{" "}
+              {names[memory.author] ?? AUTHOR_LABELS[memory.author]}
             </p>
           </div>
 
-          {memory.note && (
-            <blockquote className="paper-note rounded-2xl bg-white/70 p-4 font-hand text-2xl leading-7 text-romance-800 ring-1 ring-romance-100">
-              {memory.note}
-            </blockquote>
+          {memory.gallery && memory.gallery.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-[11px] tracking-[0.28em] text-romance-400 uppercase">
+                Mais fotos desse dia
+              </h3>
+              <div className="flex gap-3 overflow-x-auto hide-scrollbar snap-x pb-2">
+                {memory.gallery.map((foto) => (
+                  <a
+                    key={foto.id}
+                    href={foto.image_url} // <--- Mudou para image_url
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 snap-center cursor-pointer"
+                    title="Ver imagem inteira"
+                  >
+                    <img
+                      src={foto.thumb_url || foto.image_url} // <--- Usa a miniatura para ser mais rápido
+                      alt="Foto extra"
+                      className="h-28 w-28 rounded-xl object-cover shadow-sm ring-1 ring-romance-200 transition hover:scale-105"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
 
           <div className="space-y-3">
