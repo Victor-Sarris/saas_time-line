@@ -118,7 +118,7 @@ export default function App() {
           </motion.button>
         )}
 
-        {/* filtros */}
+        {/* filtro */}
         {memories.length > 0 || filter !== "todos" ? (
           <div className="sticky top-0 z-40 mb-6 flex justify-center px-3 py-3 sm:mb-8 sm:px-4">
             <div className="glass hide-scrollbar flex max-w-full snap-x gap-1.5 overflow-x-auto rounded-full p-1.5 shadow-lg shadow-romance-200/50">
