@@ -7,6 +7,11 @@ from django.views.decorators.http import require_GET
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from .models import Annotation, Memory, MemoryImage
@@ -239,3 +244,48 @@ def gallery_image(request, pk):
 @require_GET
 def gallery_thumb(request, pk):
     return _serve_gallery_blob(request, pk, "thumb_data")
+
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])  # A proteção será feita por token
+def send_reminders(request):
+    # Proteção: só roda se o token correto for passado no Header
+    auth_header = request.headers.get("Authorization")
+    expected_token = f"Bearer {settings.CRON_SECRET}"
+
+    if auth_header != expected_token:
+        return Response({"erro": "Não autorizado"}, status=401)
+
+    now = timezone.now()
+
+    # Busca memórias que atingiram a data de desbloqueio e ainda não foram notificadas
+    unlocked_memories = Memory.objects.filter(
+        unlock_date__lte=now,
+        is_notified=False
+    )
+
+    if not unlocked_memories.exists():
+        return Response({"status": "Nenhuma nova memória para notificar."})
+
+    # Lógica para enviar o e-mail
+    for memory in unlocked_memories:
+        assunto = f"Nova Cápsula do Tempo Desbloqueada: {memory.title}!"
+        mensagem = f"O momento '{memory.title}' guardado na linha do tempo finalmente foi desbloqueado!\n\nAcesse o site para ver as fotos e recados guardados."
+
+        # Envia o e-mail (ajuste o destinatário conforme necessário)
+        send_mail(
+            assunto,
+            mensagem,
+            settings.DEFAULT_FROM_EMAIL,
+            settings.EMAILS_DO_CASAL,
+            fail_silently=False,
+        )
+
+        # Marca como enviada para não mandar de novo amanhã
+        memory.is_notified = True
+        memory.save(update_fields=["is_notified"])
+
+    return Response({
+        "status": "Sucesso",
+        "notificacoes_enviadas": unlocked_memories.count()
+    })

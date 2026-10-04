@@ -8,6 +8,7 @@ from .views import (
     memory_thumb,
     gallery_image,
     gallery_thumb,
+    send_reminders,
     site_config,
 )
 
@@ -26,5 +27,6 @@ urlpatterns = [
     path("gallery/<int:pk>/image/", gallery_image, name="gallery-image"),
     path("gallery/<int:pk>/thumb/", gallery_thumb, name="gallery-thumb"),
 
+    path("cron/send-reminders/", send_reminders, name="send-reminders"),
     path("", include(router.urls)),
 ]

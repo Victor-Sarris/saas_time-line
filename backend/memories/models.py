@@ -41,6 +41,7 @@ class Memory(models.Model):
 
     unlock_date = models.DateTimeField(null=True, blank=True, help_text="Se definido, a memória só poderá ser vista após esta data.")
 
+    is_notified = models.BooleanField("notificação enviada", default=False)
     class Meta:
         ordering = ["happened_on", "created_at"]
         verbose_name = "memória"

@@ -200,3 +200,17 @@ LOVE_CONFIG = {
         "https://open.spotify.com/playlist/37i9dQZF1DX50QitC6Oqtn",
     ),
 }
+
+# serviço de email
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(env("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Token secreto para proteger nossa rota do Cron Job
+CRON_SECRET = env("CRON_SECRET", "super-secreto-mude-em-prod")
+
+EMAILS_DO_CASAL = env_list("EMAILS_DESTINO", default="")
