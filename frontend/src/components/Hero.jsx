@@ -1,6 +1,4 @@
 import { motion } from "framer-motion";
-import ExportBookButton from "./ExportBookButton.jsx";
-
 import TogetherCounter from "./TogetherCounter.jsx";
 
 export default function Hero({ config, summary, memories }) {
@@ -54,9 +52,7 @@ export default function Hero({ config, summary, memories }) {
         </motion.p>
       )}
 
-      {memories?.length > 0 && (
-        <ExportBookButton memories={memories} config={config} />
-      )}
+      {/* O ExportBookButton foi retirado daqui! */}
 
       <motion.a
         href="#timeline"
@@ -71,7 +67,7 @@ export default function Hero({ config, summary, memories }) {
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           className="text-2xl"
         >
-          ↓
+          👇
         </motion.span>
       </motion.a>
     </header>

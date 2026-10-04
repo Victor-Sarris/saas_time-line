@@ -48,22 +48,20 @@ export default function ExportBookButton({ memories, config }) {
         transition={{ duration: 1, delay: 0.9 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="mt-4 flex cursor-pointer items-center gap-2 rounded-full bg-romance-600 px-6 py-3 font-medium text-cream shadow-lg shadow-romance-300/60 transition hover:bg-romance-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex w-full justify-center cursor-pointer items-center gap-2 rounded-full bg-romance-600 px-6 py-3.5 font-medium text-cream shadow-lg shadow-romance-300/60 transition hover:bg-romance-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isGenerating ? (
           <>
-            <FaSpinner className="animate-spin" />{" "}
-            {/* Substitua por ⏳ se não tiver react-icons */}
+            <FaSpinner className="animate-spin" />
             <span>Gerando Livro...</span>
           </>
         ) : (
           <>
-            <FaBookOpen /> {/* Substitua por 📖 se não tiver react-icons */}
+            <FaBookOpen />
             <span>Baixar Livro de Memórias (PDF)</span>
           </>
         )}
       </motion.button>
-
       <MemoryBookPdf memories={memories} config={config} />
     </>
   );

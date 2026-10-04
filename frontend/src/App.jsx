@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
+import { GrConfigure } from "react-icons/gr";
 import AddMemoryModal from "./components/AddMemoryModal.jsx";
-import FallingPetals from "./components/FallingPetals.jsx";
 import FinalLetter from "./components/FinalLetter.jsx";
 import Hero from "./components/Hero.jsx";
 import Intro from "./components/Intro.jsx";
@@ -13,10 +12,12 @@ import Toast from "./components/Toast.jsx";
 import { useTimeline } from "./hooks/useTimeline.js";
 import BackgroundEffects from "./components/BackgroundEffects.jsx";
 import ThemeSelector from "./components/ThemeSelector.jsx";
+import Modal from "./components/Modal.jsx"; // <-- IMPORTANDO O MODAL PARA AS CONFIGS
+import ExportBookButton from "./components/ExportBookButton.jsx";
 
 const FILTERS = [
   { id: "todos", label: "tudo" },
-  { id: "favoritos", label: "💖 favoritos" },
+  { id: "favoritos", label: "🌟 favoritos" },
   { id: "ele", label: "por ele" },
   { id: "ela", label: "por ela" },
   { id: "nos", label: "nós dois" },
@@ -27,8 +28,12 @@ export default function App() {
   const [filter, setFilter] = useState("todos");
   const [selectedId, setSelectedId] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [showSettings, setShowSettings] = useState(false); // <-- NOVO ESTADO
   const [toast, setToast] = useState("");
-  const [backgroundEffect, setBackgroundEffect] = useState("hearts");
+
+  const [backgroundEffect, setBackgroundEffect] = useState(() => {
+    return localStorage.getItem("tema_site") || "hearts";
+  });
 
   const query = useMemo(() => {
     if (filter === "favoritos") return { favorites: "1" };
@@ -58,13 +63,13 @@ export default function App() {
   }, [toast]);
 
   useEffect(() => {
-    document.title = `A nossa história · ${config.her_name}`;
+    document.title = `A nossa história • ${config.her_name}`;
   }, [config.her_name]);
 
   const handleCreate = async (formData) => {
     await createMemory(formData);
     setAdding(false);
-    setToast("Momento guardado na nossa timeline 💗");
+    setToast("Momento guardado na nossa timeline 💌");
   };
 
   const handleDelete = async (id) => {
@@ -75,12 +80,16 @@ export default function App() {
 
   const handleAnnotation = async (id, payload) => {
     await addAnnotation(id, payload);
-    setToast("Recadinho guardado 💌");
+    setToast("Recadinho guardado 📝");
   };
+
+  useEffect(() => {
+    localStorage.setItem("tema_site", backgroundEffect);
+    document.documentElement.setAttribute("data-theme", backgroundEffect);
+  }, [backgroundEffect]);
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      {/* SUBSTITUA O FallingPetals PELO NOVO COMPONENTE */}
       <BackgroundEffects effectType={backgroundEffect} />
 
       <AnimatePresence>
@@ -88,21 +97,30 @@ export default function App() {
           <Intro herName={config.her_name} onOpen={() => setOpened(true)} />
         )}
       </AnimatePresence>
+
       <main className="relative z-10">
         <Hero config={config} summary={summary} memories={memories} />
 
-        {/* INCLUA O SELETOR DE TEMAS AQUI (Entre o Hero e os filtros) */}
+        {/* botão flutuante de configurações no canto superior direito */}
         {opened && (
-          <ThemeSelector
-            currentEffect={backgroundEffect}
-            onEffectChange={setBackgroundEffect}
-          />
+          <motion.button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1 }}
+            whileHover={{ scale: 1.05, rotate: 15 }}
+            whileTap={{ scale: 0.95 }}
+            className="fixed top-5 right-5 z-50 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-cream/90 text-xl text-romance-600 shadow-lg shadow-romance-300/30 ring-1 ring-romance-200 backdrop-blur-md transition sm:top-6 sm:right-6 hover:bg-cream"
+            aria-label="Personalizar aparência"
+          >
+            <GrConfigure />
+          </motion.button>
         )}
 
         {/* filtros */}
         {memories.length > 0 || filter !== "todos" ? (
           <div className="sticky top-0 z-40 mb-6 flex justify-center px-3 py-3 sm:mb-8 sm:px-4">
-            {/* no celular a barra rola de lado em vez de quebrar em duas linhas */}
             <div className="glass hide-scrollbar flex max-w-full snap-x gap-1.5 overflow-x-auto rounded-full p-1.5 shadow-lg shadow-romance-200/50">
               {FILTERS.map((item) => (
                 <button
@@ -124,7 +142,7 @@ export default function App() {
 
         {loading && (
           <div className="flex flex-col items-center gap-3 py-24 text-romance-400">
-            <span className="animate-heartbeat text-4xl">💗</span>
+            <span className="animate-heartbeat text-4xl">🤍</span>
             <p className="font-hand text-xl">juntando as nossas memórias...</p>
           </div>
         )}
@@ -148,7 +166,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             className="mx-auto max-w-md px-6 py-16 text-center"
           >
-            <span className="text-5xl">📷</span>
+            <span className="text-5xl">🎞️</span>
             <p className="mt-4 font-display text-2xl text-romance-700">
               A linha do tempo está vazia
             </p>
@@ -172,7 +190,7 @@ export default function App() {
         <FinalLetter config={config} />
       </main>
 
-      {/* botão flutuante */}
+      {/* botão flutuante de adicionar (+) */}
       <motion.button
         type="button"
         onClick={() => setAdding(true)}
@@ -186,6 +204,7 @@ export default function App() {
 
       <SpotifyPlayer embedUrl={config.spotify_embed_url} started={opened} />
 
+      {/* MODAIS DA APLICAÇÃO */}
       <AnimatePresence>
         {selected && (
           <MemoryModal
@@ -198,6 +217,7 @@ export default function App() {
             onDelete={handleDelete}
           />
         )}
+
         {adding && (
           <AddMemoryModal
             key="add"
@@ -206,7 +226,71 @@ export default function App() {
             onCreate={handleCreate}
           />
         )}
+
+        {/* NOVO MODAL DE CONFIGURAÇÕES / TEMA */}
+        {showSettings && (
+          <Modal
+            key="settings"
+            onClose={() => setShowSettings(false)}
+            className="max-w-sm p-6 text-center sm:p-8"
+          >
+            <h2 className="font-display text-3xl text-romance-900">
+              Aparência
+            </h2>
+            <p className="mt-1 mb-6 font-hand text-xl text-romance-500">
+              escolha o clima da nossa história
+            </p>
+
+            <ThemeSelector
+              currentEffect={backgroundEffect}
+              onEffectChange={setBackgroundEffect}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowSettings(false)}
+              className="mt-8 w-full cursor-pointer rounded-full bg-romance-100 px-6 py-3.5 text-sm font-medium text-romance-700 transition hover:bg-romance-200"
+            >
+              Pronto
+            </button>
+          </Modal>
+        )}
       </AnimatePresence>
+      {/* NOVO MODAL DE CONFIGURAÇÕES / TEMA */}
+      {showSettings && (
+        <Modal
+          key="settings"
+          onClose={() => setShowSettings(false)}
+          className="max-w-sm p-6 text-center sm:p-8"
+        >
+          <h2 className="font-display text-3xl text-romance-900">
+            Configurações
+          </h2>
+          <p className="mt-1 mb-6 font-hand text-xl text-romance-500">
+            personalize ou exporte nossa história
+          </p>
+
+          <ThemeSelector
+            currentEffect={backgroundEffect}
+            onEffectChange={setBackgroundEffect}
+          />
+
+          {/* ADICIONADO AQUI: Separador e Botão de Exportar */}
+          {memories.length > 0 && (
+            <div className="mt-6 border-t border-romance-100 pt-6">
+              <ExportBookButton memories={memories} config={config} />
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowSettings(false)}
+            className="mt-4 w-full cursor-pointer rounded-full bg-romance-100 px-6 py-3.5 text-sm font-medium text-romance-700 transition hover:bg-romance-200"
+          >
+            Pronto
+          </button>
+        </Modal>
+      )}
 
       <Toast message={toast} />
     </div>
