@@ -3,24 +3,24 @@ import { FaLock } from "react-icons/fa";
 import { AUTHOR_LABELS, formatLongDate } from "../utils/format.js";
 
 const AUTHOR_STYLES = {
+  // azul frio — contraste clássico com os temas quentes
   ele: "bg-sky-100/80 text-sky-700",
+  // segue o tema atual (rosa padrão, âmbar no nordestino, etc.)
   ela: "bg-romance-100 text-romance-700",
-  nos: "bg-amber-100/80 text-amber-800",
+  // dourado adaptativo — usa --color-gold, que muda com o tema
+  nos: "bg-gold/20 text-romance-800",
 };
 
 export default function MemoryCard({ memory, side = "left", onOpen }) {
   const tilt = side === "left" ? -1.4 : 1.4;
   const notes = memory.annotations?.length ?? 0;
 
-  // 1. Nova função que intercepta o clique do usuário
   const handleOpen = () => {
     if (memory.is_locked) {
-      // Bloqueia a abertura e mostra quando estará disponível
       alert(
         `Esta cápsula do tempo só abre em: ${new Date(memory.unlock_date).toLocaleDateString()}`,
       );
     } else {
-      // Abre o modal normalmente se não estiver trancado
       onOpen(memory);
     }
   };
@@ -39,7 +39,7 @@ export default function MemoryCard({ memory, side = "left", onOpen }) {
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ rotate: 0, y: -6, scale: 1.015 }}
-      onClick={handleOpen} // <-- Substituímos onClick={() => onOpen(memory)} por handleOpen
+      onClick={handleOpen}
       className={`group relative cursor-pointer rounded-[22px] bg-cream p-3 shadow-[0_18px_45px_-18px] shadow-romance-900/40 ring-1 ring-romance-100 transition-shadow hover:shadow-[0_26px_60px_-18px] hover:shadow-romance-700/40 ${memory.is_locked ? "opacity-90" : ""}`}
     >
       {/* fitinha de washi tape */}
@@ -59,7 +59,6 @@ export default function MemoryCard({ memory, side = "left", onOpen }) {
       )}
 
       <div className="relative overflow-hidden rounded-2xl bg-romance-100">
-        {/* 2. Renderização condicional: Cadeado ou Imagem real */}
         {memory.is_locked ? (
           <div className="aspect-4/5 w-full flex flex-col items-center justify-center bg-romance-900/80 text-cream sm:aspect-3/2">
             <FaLock size={40} className="mb-3 text-romance-300" />
@@ -96,7 +95,6 @@ export default function MemoryCard({ memory, side = "left", onOpen }) {
           {memory.is_locked ? "Guardado a sete chaves..." : memory.title}
         </h3>
 
-        {/* 3. Esconde a nota se estiver trancado */}
         {!memory.is_locked && memory.note && (
           <p className="line-clamp-3 font-hand text-xl leading-snug text-romance-700/90">
             {memory.note}
