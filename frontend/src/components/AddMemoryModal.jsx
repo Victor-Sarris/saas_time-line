@@ -1,26 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-
 import Modal from "./Modal.jsx";
 import { compressImage, formatBytes } from "../utils/compressImage.js";
 import { todayISO } from "../utils/format.js";
 
-// funções serverless recusam corpo acima de ~4,5MB
+// limites de envio
 const HARD_LIMIT = 4.2 * 1024 * 1024;
-
-const AUTHORS = ["Sarrís", "Sabrina", "nos"];
+const AUTHORS = ["ele", "ela", "nos"];
 const EMPTY = {
   title: "",
   note: "",
   happened_on: todayISO(),
   location: "",
-  author: "Sarrís",
+  author: "ele",
   is_favorite: false,
 };
 
 export default function AddMemoryModal({ config, onClose, onCreate }) {
   const [form, setForm] = useState(EMPTY);
   const [file, setFile] = useState(null);
-  const [sizes, setSizes] = useState(null); // { antes, depois }
+  const [sizes, setSizes] = useState(null);
   const [optimizing, setOptimizing] = useState(false);
   const [preview, setPreview] = useState(null);
   const [dragging, setDragging] = useState(false);
@@ -28,12 +26,21 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const [saving, setSaving] = useState(false);
   const inputRef = useRef(null);
 
+  // Estados da Cápsula do Tempo
+  const [isTimeCapsule, setIsTimeCapsule] = useState(false);
+  const [unlockDate, setUnlockDate] = useState("");
+
+  // Estados da Galeria
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
+
   const names = {
-    Sarrís: config?.his_name || "Sarrís",
-    Sabrina: config?.her_name || "Sabrina",
+    ele: config?.his_name || "Ele",
+    ela: config?.her_name || "Ela",
     nos: "Nós dois",
   };
 
+  // Prepara o preview da imagem principal
   useEffect(() => {
     if (!file) {
       setPreview(null);
@@ -47,6 +54,7 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   const update = (field) => (event) =>
     setForm((current) => ({ ...current, [field]: event.target.value }));
 
+  // Processa a imagem principal
   const pickFile = async (candidate) => {
     if (!candidate) return;
     if (!candidate.type.startsWith("image/")) {
@@ -70,20 +78,55 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
     }
   };
 
-  const submit = async (event) => {
-    event.preventDefault();
-    if (saving) return;
+  // Processa as múltiplas imagens da galeria
+  const pickGalleryFiles = async (candidates) => {
+    if (!candidates || candidates.length === 0) return;
+    setOptimizing(true);
 
+    const processedFiles = [];
+    const previews = [];
+
+    for (let i = 0; i < candidates.length; i++) {
+      const candidate = candidates[i];
+      if (candidate.type.startsWith("image/")) {
+        const otimizada = await compressImage(candidate);
+        processedFiles.push(otimizada);
+        previews.push(URL.createObjectURL(otimizada));
+      }
+    }
+
+    setGalleryFiles((prev) => [...prev, ...processedFiles]);
+    setGalleryPreviews((prev) => [...prev, ...previews]);
+    setOptimizing(false);
+  };
+
+  // Envio para o Backend
+  const submit = async (event) => {
+    event.preventDefault(); // Corrigido de e.preventDefault() para event.preventDefault()
+
+    if (saving) return;
     if (optimizing)
       return setError("Só um segundo, ainda estou otimizando a foto.");
-    if (!file) return setError("Escolhe uma foto pra essa memória.");
+    if (!file) return setError("Escolhe uma foto principal pra essa memória.");
     if (file.size > HARD_LIMIT)
       return setError("Essa foto é pesada demais pro envio. Tenta uma outra?");
     if (!form.title.trim()) return setError("Dá um nome pra esse momento. ✨");
 
     const payload = new FormData();
     Object.entries(form).forEach(([key, value]) => payload.append(key, value));
+
+    // Anexa a imagem principal
     payload.append("image", file);
+
+    // Anexa a data da cápsula (se ativada)
+    if (isTimeCapsule && unlockDate) {
+      payload.append("unlock_date", new Date(unlockDate).toISOString());
+    }
+
+    // Anexa as imagens extra (Galeria)
+    galleryFiles.forEach((extraFile) => {
+      payload.append("gallery", extraFile);
+    });
 
     setSaving(true);
     setError("");
@@ -110,7 +153,7 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
         </p>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
-          {/* upload */}
+          {/* Upload Principal */}
           <div
             onDragOver={(event) => {
               event.preventDefault();
@@ -162,10 +205,10 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
                 <span className="text-4xl">📸</span>
                 <p className="text-sm text-romance-500">
                   <span className="pointer-coarse:hidden">
-                    Arraste a foto aqui ou clique para escolher
+                    Arraste a foto principal aqui ou clique para escolher
                   </span>
                   <span className="hidden pointer-coarse:inline">
-                    Toque para escolher uma foto
+                    Toque para escolher uma foto principal
                   </span>
                 </p>
                 <p className="text-xs text-romance-300">
@@ -182,7 +225,7 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
             />
           </div>
 
-          {/* campos */}
+          {/* Campos de Texto */}
           <div className="space-y-4">
             <Field label="Esse momento foi...">
               <input
@@ -249,6 +292,60 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
           </div>
         </div>
 
+        {/* Upload da Galeria (Embutido no estilo do projeto) */}
+        <div className="mt-6 p-4 rounded-2xl bg-white/60 border border-romance-100">
+          <Field label="Tem mais fotos desse dia? (Galeria Extra)">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(event) => pickGalleryFiles(event.target.files)}
+              className="mt-2 block w-full text-sm text-romance-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-romance-100 file:text-romance-700 hover:file:bg-romance-200 file:cursor-pointer file:transition"
+            />
+          </Field>
+
+          {/* Pré-visualização da galeria */}
+          {galleryPreviews.length > 0 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto hide-scrollbar snap-x">
+              {galleryPreviews.map((src, idx) => (
+                <img
+                  key={idx}
+                  src={src}
+                  className="h-16 w-16 object-cover rounded-xl shadow-sm border border-romance-200 snap-center"
+                  alt={`Extra ${idx}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Cápsula do Tempo (Embutido no estilo do projeto) */}
+        <div className="mt-4 p-4 rounded-2xl bg-romance-50/50 border border-romance-100">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-romance-700 font-medium">
+            <input
+              type="checkbox"
+              checked={isTimeCapsule}
+              onChange={(e) => setIsTimeCapsule(e.target.checked)}
+              className="h-4 w-4 accent-romance-600 cursor-pointer"
+            />
+            Transformar em Cápsula do Tempo? ⏳
+          </label>
+
+          {isTimeCapsule && (
+            <div className="mt-4">
+              <Field label="Quando esta memória deve ser revelada?">
+                <input
+                  type="datetime-local"
+                  value={unlockDate}
+                  onChange={(e) => setUnlockDate(e.target.value)}
+                  required
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
+        </div>
+
         <div className="mt-5">
           <Field label="A anotação">
             <textarea
@@ -267,6 +364,7 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
           </p>
         )}
 
+        {/* Botões de Ação */}
         <div className="mt-6 flex gap-3">
           <button
             type="button"
@@ -292,8 +390,6 @@ export default function AddMemoryModal({ config, onClose, onCreate }) {
   );
 }
 
-// text-base no celular é essencial: abaixo de 16px o iOS dá zoom sozinho
-// ao focar o campo e desalinha a tela inteira
 const inputClass =
   "w-full rounded-xl bg-white/80 px-4 py-3 text-base text-romance-800 ring-1 ring-romance-200 outline-none placeholder:text-romance-300 focus:ring-2 focus:ring-romance-400 sm:py-2.5 sm:text-sm";
 

@@ -7,14 +7,23 @@ from django.views.decorators.http import require_GET
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .models import Annotation, Memory
+from .models import Annotation, Memory, MemoryImage
 from .serializers import (
     AnnotationSerializer,
     MemorySerializer,
     MemoryUpdateSerializer,
 )
+
+import logging
+from django.core.mail import send_mail
+logger = logging.getLogger(__name__)
 
 # Os blobs são pesados: nunca traga eles junto da listagem.
 LIST_DEFER = ("image_data", "thumb_data")
@@ -92,6 +101,23 @@ class MemoryViewSet(viewsets.ModelViewSet):
             }
         )
 
+    def perform_create(self, serializer):
+        memory = serializer.save()
+        gallery_files = self.request.FILES.getlist('gallery')
+
+        from .imaging import process_upload
+        for file in gallery_files:
+            try:
+                processed = process_upload(file)
+                MemoryImage.objects.create(
+                    memory=memory,
+                    image_data=processed["image_data"],
+                    thumb_data=processed["thumb_data"],
+                    image_mime=processed["image_mime"],
+                    image_hash=processed["image_hash"]
+                )
+            except ValueError:
+                continue  # Ignora arquivos inválidos
 
 class AnnotationViewSet(viewsets.ModelViewSet):
     queryset = Annotation.objects.select_related("memory").all()
@@ -184,3 +210,94 @@ def _to_spotify_embed(url: str) -> str:
             item_id = clean.split(marker)[-1]
             return f"https://open.spotify.com/embed/{kind}/{item_id}"
     return clean
+
+
+def _serve_gallery_blob(request, pk, field):
+    row = (
+        MemoryImage.objects.filter(pk=pk)
+        .values(field, "image_mime", "image_hash")
+        .first()
+    )
+    if row is None:
+        raise Http404("Essa foto da galeria não existe.")
+
+    data = bytes(row[field] or b"")
+    if not data:
+        raise Http404("Essa foto da galeria está vazia.")
+
+    etag = f'"{row["image_hash"]}-{field}"'
+    if request.headers.get("If-None-Match") == etag:
+        return HttpResponseNotModified()
+
+    response = HttpResponse(data, content_type=row["image_mime"] or "image/webp")
+    response["ETag"] = etag
+    response["Content-Length"] = str(len(data))
+    response["Cache-Control"] = (
+        "public, max-age=31536000, immutable"
+        if request.GET.get("v")
+        else "public, max-age=300"
+    )
+    return response
+
+
+@require_GET
+def gallery_image(request, pk):
+    return _serve_gallery_blob(request, pk, "image_data")
+
+
+@require_GET
+def gallery_thumb(request, pk):
+    return _serve_gallery_blob(request, pk, "thumb_data")
+
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])  # a proteção é feita via token abaixo
+def send_reminders(request):
+    auth_header = request.headers.get("Authorization")
+    expected_token = f"Bearer {settings.CRON_SECRET}"
+
+    if auth_header != expected_token:
+        return Response({"erro": "Não autorizado"}, status=401)
+
+    now = timezone.now()
+
+    # Materializa a lista ANTES de marcar como notificada — senão o count()
+    # no final dá 0 (queryset é lazy e re-consulta o banco já sem as memórias).
+    memorias = list(Memory.objects.filter(unlock_date__lte=now, is_notified=False))
+
+    if not memorias:
+        return Response({"status": "Nenhuma nova memória para notificar."})
+
+    enviados = 0
+    falhas = 0
+
+    for memory in memorias:
+        assunto = f"Nova Cápsula do Tempo Desbloqueada: {memory.title}!"
+        mensagem = (
+            f"O momento '{memory.title}' guardado na linha do tempo "
+            f"finalmente foi desbloqueado!\n\n"
+            f"Acesse o site para ver as fotos e recados guardados."
+        )
+
+        try:
+            send_mail(
+                assunto,
+                mensagem,
+                settings.DEFAULT_FROM_EMAIL,
+                settings.EMAILS_DO_CASAL,
+                fail_silently=False,
+            )
+            memory.is_notified = True
+            memory.save(update_fields=["is_notified"])
+            enviados += 1
+        except Exception as exc:
+            logger.exception(
+                "Falha ao enviar e-mail da memória %s: %s", memory.pk, exc
+            )
+            falhas += 1
+
+    return Response({
+        "status": "Sucesso",
+        "notificacoes_enviadas": enviados,
+        "falhas": falhas,
+    })
