@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { GrConfigure } from "react-icons/gr";
 import AddMemoryModal from "./components/AddMemoryModal.jsx";
@@ -12,7 +12,7 @@ import Toast from "./components/Toast.jsx";
 import { useTimeline } from "./hooks/useTimeline.js";
 import BackgroundEffects from "./components/BackgroundEffects.jsx";
 import ThemeSelector from "./components/ThemeSelector.jsx";
-import Modal from "./components/Modal.jsx"; // <-- IMPORTANDO O MODAL PARA AS CONFIGS
+import Modal from "./components/Modal.jsx";
 import ExportBookButton from "./components/ExportBookButton.jsx";
 
 const FILTERS = [
@@ -28,7 +28,7 @@ export default function App() {
   const [filter, setFilter] = useState("todos");
   const [selectedId, setSelectedId] = useState(null);
   const [adding, setAdding] = useState(false);
-  const [showSettings, setShowSettings] = useState(false); // <-- NOVO ESTADO
+  const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState("");
 
   const [backgroundEffect, setBackgroundEffect] = useState(() => {
@@ -56,6 +56,15 @@ export default function App() {
 
   const selected = memories.find((item) => item.id === selectedId) ?? null;
 
+  // ✅ Callbacks estáveis — evita que o useEffect do Modal re-rode
+  //    a cada render e deixe o body travado.
+  const closeSettings = useCallback(() => setShowSettings(false), []);
+  const closeAdding = useCallback(() => setAdding(false), []);
+  const closeSelected = useCallback(() => setSelectedId(null), []);
+  const openSettings = useCallback(() => setShowSettings(true), []);
+  const openAdding = useCallback(() => setAdding(true), []);
+  const openIntro = useCallback(() => setOpened(true), []);
+
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(""), 3200);
@@ -66,22 +75,33 @@ export default function App() {
     document.title = `A nossa história • ${config.her_name}`;
   }, [config.her_name]);
 
-  const handleCreate = async (formData) => {
-    await createMemory(formData);
-    setAdding(false);
-    setToast("Momento guardado na nossa timeline 💌");
-  };
+  const handleCreate = useCallback(
+    async (formData) => {
+      await createMemory(formData);
+      setAdding(false);
+      setToast("Momento guardado na nossa timeline 💌");
+    },
+    [createMemory],
+  );
 
-  const handleDelete = async (id) => {
-    setSelectedId(null);
-    await deleteMemory(id);
-    setToast("Memória apagada.");
-  };
+  const handleDelete = useCallback(
+    async (id) => {
+      setSelectedId(null);
+      await deleteMemory(id);
+      setToast("Memória apagada.");
+    },
+    [deleteMemory],
+  );
 
-  const handleAnnotation = async (id, payload) => {
-    await addAnnotation(id, payload);
-    setToast("Recadinho guardado 📝");
-  };
+  const handleAnnotation = useCallback(
+    async (id, payload) => {
+      await addAnnotation(id, payload);
+      setToast("Recadinho guardado 📝");
+    },
+    [addAnnotation],
+  );
+
+  const handleOpenMemory = useCallback((m) => setSelectedId(m.id), []);
 
   useEffect(() => {
     localStorage.setItem("tema_site", backgroundEffect);
@@ -93,25 +113,23 @@ export default function App() {
       <BackgroundEffects effectType={backgroundEffect} />
 
       <AnimatePresence>
-        {!opened && (
-          <Intro herName={config.her_name} onOpen={() => setOpened(true)} />
-        )}
+        {!opened && <Intro herName={config.her_name} onOpen={openIntro} />}
       </AnimatePresence>
 
       <main className="relative z-10">
         <Hero config={config} summary={summary} memories={memories} />
 
-        {/* botão flutuante de configurações no canto superior direito */}
+        {/* botão flutuante de configurações */}
         {opened && (
           <motion.button
             type="button"
-            onClick={() => setShowSettings(true)}
+            onClick={openSettings}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1 }}
             whileHover={{ scale: 1.05, rotate: 15 }}
             whileTap={{ scale: 0.95 }}
-            className="fixed top-5 right-5 z-50 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-cream/90 text-xl text-romance-600 shadow-lg shadow-romance-300/30 ring-1 ring-romance-200 backdrop-blur-md transition sm:top-6 sm:right-6 hover:bg-cream"
+            className="fixed top-5 right-5 z-50 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-cream/90 text-xl text-romance-600 shadow-lg shadow-romance-300/30 ring-1 ring-romance-200 backdrop-blur-md transition hover:bg-cream sm:top-6 sm:right-6"
             aria-label="Personalizar aparência"
           >
             <GrConfigure />
@@ -175,7 +193,7 @@ export default function App() {
             </p>
             <button
               type="button"
-              onClick={() => setAdding(true)}
+              onClick={openAdding}
               className="mt-6 cursor-pointer rounded-full bg-romance-600 px-6 py-3 text-sm text-cream shadow-lg shadow-romance-300/60"
             >
               guardar a primeira foto
@@ -184,7 +202,7 @@ export default function App() {
         )}
 
         {!loading && !error && memories.length > 0 && (
-          <Timeline memories={memories} onOpen={(m) => setSelectedId(m.id)} />
+          <Timeline memories={memories} onOpen={handleOpenMemory} />
         )}
 
         <FinalLetter config={config} />
@@ -193,7 +211,7 @@ export default function App() {
       {/* botão flutuante de adicionar (+) */}
       <motion.button
         type="button"
-        onClick={() => setAdding(true)}
+        onClick={openAdding}
         whileHover={{ scale: 1.08, rotate: 90 }}
         whileTap={{ scale: 0.92 }}
         aria-label="Guardar um novo momento"
@@ -211,7 +229,7 @@ export default function App() {
             key="detail"
             memory={selected}
             config={config}
-            onClose={() => setSelectedId(null)}
+            onClose={closeSelected}
             onAddAnnotation={handleAnnotation}
             onToggleFavorite={toggleFavorite}
             onDelete={handleDelete}
@@ -222,70 +240,64 @@ export default function App() {
           <AddMemoryModal
             key="add"
             config={config}
-            onClose={() => setAdding(false)}
+            onClose={closeAdding}
             onCreate={handleCreate}
           />
         )}
+      </AnimatePresence>
 
-        {/* NOVO MODAL DE CONFIGURAÇÕES / TEMA */}
-        {showSettings && (
-          <Modal
-            key="settings"
-            onClose={() => setShowSettings(false)}
-            className="max-w-sm p-6 text-center sm:p-8"
-          >
-            <h2 className="font-display text-3xl text-romance-900">
-              Aparência
+      {/* MODAL DE CONFIGURAÇÕES / TEMA */}
+      {showSettings && (
+        <Modal
+          key="settings"
+          onClose={closeSettings}
+          className="max-w-md px-5 pt-9 pb-6 sm:px-7 sm:pt-10 sm:pb-7"
+        >
+          {/* Cabeçalho */}
+          <div className="text-center">
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-romance-100 to-romance-200 text-2xl shadow-inner shadow-romance-200/60">
+              ✨
+            </span>
+            <h2 className="mt-3 font-display text-3xl leading-tight text-romance-900">
+              Configurações
             </h2>
-            <p className="mt-1 mb-6 font-hand text-xl text-romance-500">
-              escolha o clima da nossa história
+            <p className="mt-1 font-hand text-xl text-romance-500">
+              deixa tudo com a nossa cara
             </p>
+          </div>
 
+          {/* Seção: Aparência */}
+          <div className="mt-6 rounded-3xl bg-romance-50/60 p-4 ring-1 ring-romance-100">
+            <div className="mb-3 flex items-center gap-2 px-1">
+              <span className="text-base">🎨</span>
+              <span className="text-[11px] font-semibold tracking-[0.28em] text-romance-400 uppercase">
+                Aparência
+              </span>
+            </div>
             <ThemeSelector
               currentEffect={backgroundEffect}
               onEffectChange={setBackgroundEffect}
             />
+          </div>
 
-            <button
-              type="button"
-              onClick={() => setShowSettings(false)}
-              className="mt-8 w-full cursor-pointer rounded-full bg-romance-100 px-6 py-3.5 text-sm font-medium text-romance-700 transition hover:bg-romance-200"
-            >
-              Pronto
-            </button>
-          </Modal>
-        )}
-      </AnimatePresence>
-      {/* NOVO MODAL DE CONFIGURAÇÕES / TEMA */}
-      {showSettings && (
-        <Modal
-          key="settings"
-          onClose={() => setShowSettings(false)}
-          className="max-w-sm p-6 text-center sm:p-8"
-        >
-          <h2 className="font-display text-3xl text-romance-900">
-            Configurações
-          </h2>
-          <p className="mt-1 mb-6 font-hand text-xl text-romance-500">
-            personalize ou exporte nossa história
-          </p>
-
-          <ThemeSelector
-            currentEffect={backgroundEffect}
-            onEffectChange={setBackgroundEffect}
-          />
-
-          {/* ADICIONADO AQUI: Separador e Botão de Exportar */}
+          {/* Seção: Exportar (só aparece se tiver memória) */}
           {memories.length > 0 && (
-            <div className="mt-6 border-t border-romance-100 pt-6">
+            <div className="mt-4 rounded-3xl bg-romance-50/60 p-4 ring-1 ring-romance-100">
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <span className="text-base">📖</span>
+                <span className="text-[11px] font-semibold tracking-[0.28em] text-romance-400 uppercase">
+                  Nosso livrinho
+                </span>
+              </div>
               <ExportBookButton memories={memories} config={config} />
             </div>
           )}
 
+          {/* Botão pronto */}
           <button
             type="button"
-            onClick={() => setShowSettings(false)}
-            className="mt-4 w-full cursor-pointer rounded-full bg-romance-100 px-6 py-3.5 text-sm font-medium text-romance-700 transition hover:bg-romance-200"
+            onClick={closeSettings}
+            className="mt-5 w-full cursor-pointer rounded-2xl bg-romance-100 px-6 py-3.5 text-sm font-medium text-romance-700 transition hover:bg-romance-200 active:scale-[0.99]"
           >
             Pronto
           </button>

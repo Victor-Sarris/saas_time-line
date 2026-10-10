@@ -2,17 +2,23 @@ import { useState } from "react";
 import html2pdf from "html2pdf.js";
 import MemoryBookPdf from "./MemoryBookPdf.jsx";
 import { motion } from "framer-motion";
-import { FaBookOpen, FaSpinner } from "react-icons/fa"; // Se não tiver react-icons, pode usar emojis
+import { FaBookOpen, FaSpinner } from "react-icons/fa";
 
 export default function ExportBookButton({ memories, config }) {
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const availableCount = memories.filter((m) => !m.is_locked).length;
 
   const handleDownloadPDF = () => {
     if (memories.length === 0) return;
     setIsGenerating(true);
 
     const element = document.getElementById("memory-book-container");
-    element.style.display = "block"; // Mostra temporariamente
+    if (!element) {
+      setIsGenerating(false);
+      return;
+    }
+    element.style.display = "block";
 
     const options = {
       margin: 0,
@@ -27,7 +33,7 @@ export default function ExportBookButton({ memories, config }) {
       .set(options)
       .save()
       .then(() => {
-        element.style.display = "none"; // Esconde de novo
+        element.style.display = "none";
         setIsGenerating(false);
       })
       .catch((err) => {
@@ -43,22 +49,27 @@ export default function ExportBookButton({ memories, config }) {
         type="button"
         onClick={handleDownloadPDF}
         disabled={isGenerating || memories.length === 0}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.9 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="flex w-full justify-center cursor-pointer items-center gap-2 rounded-full bg-romance-600 px-6 py-3.5 font-medium text-cream shadow-lg shadow-romance-300/60 transition hover:bg-romance-700 disabled:cursor-not-allowed disabled:opacity-50"
+        whileHover={{ scale: 1.015 }}
+        whileTap={{ scale: 0.985 }}
+        className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-linear-to-r from-romance-600 to-romance-700 px-5 py-3.5 font-medium text-cream shadow-lg shadow-romance-400/40 transition-shadow hover:shadow-xl hover:shadow-romance-400/50 disabled:cursor-not-allowed disabled:opacity-50"
       >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full"
+        />
+
         {isGenerating ? (
           <>
-            <FaSpinner className="animate-spin" />
-            <span>Gerando Livro...</span>
+            <FaSpinner className="animate-spin text-base" />
+            <span>Gerando nosso livrinho...</span>
           </>
         ) : (
           <>
-            <FaBookOpen />
-            <span>Baixar Livro de Memórias (PDF)</span>
+            <FaBookOpen className="text-base" />
+            <span>Baixar Livro de Memórias</span>
+            <span className="rounded-full bg-cream/20 px-2 py-0.5 text-[11px] font-normal">
+              {availableCount} {availableCount === 1 ? "momento" : "momentos"}
+            </span>
           </>
         )}
       </motion.button>

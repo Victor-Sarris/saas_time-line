@@ -133,6 +133,7 @@
     border-radius: 99px;
   }
 
+  /* TEMA: NEVE (Tons Frios de Inverno) */
   :root[data-theme="snow"] {
     --color-romance-50: #f0f9ff;
     --color-romance-100: #e0f2fe;
@@ -186,7 +187,27 @@
     --color-cream: #f8fafc;
   }
 
-  /* Os temas "hearts" e "petals" vão simplesmente herdar as cores rosas padrão do seu @theme original, então não precisamos defini-los aqui! */
+  /* TEMA: NORDESTINO (Âmbar / Terracota / Mostarda / Palha)
+     Referência: luz de lampião, macramê, rede, plantas penduradas.
+     Paleta terrosa aconchegante, sem amarelo-limão. */
+  :root[data-theme="nordestino"] {
+    --color-romance-50: #fdf6e9; /* creme quente, papel envelhecido */
+    --color-romance-100: #f8ead0; /* palha clara */
+    --color-romance-200: #efd4a3; /* areia dourada */
+    --color-romance-300: #e2b575; /* mostarda clara */
+    --color-romance-400: #cf9148; /* âmbar suave */
+    --color-romance-500: #b8702a; /* âmbar quente */
+    --color-romance-600: #99521a; /* terracota principal */
+    --color-romance-700: #7c3f12; /* terracota escura */
+    --color-romance-800: #5f2e0d; /* marrom queimado */
+    --color-romance-900: #3f1d06; /* marrom profundo */
+    --color-romance-950: #221002; /* café quase preto */
+    --color-gold: #c98a2e; /* âmbar queimado */
+    --color-ink: #3a1e08; /* texto marrom escuro */
+    --color-cream: #fdf6e9; /* mesmo tom do fundo, papel quente */
+  }
+
+  /* Os temas "hearts" e "petals" herdam as cores rosas padrão do @theme. */
 }
 
 @utility glass {

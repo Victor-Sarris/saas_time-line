@@ -20,6 +20,8 @@ function YearMarker({ year }) {
   );
 }
 
+// teste
+
 export default function Timeline({ memories, onOpen }) {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -59,7 +61,10 @@ export default function Timeline({ memories, onOpen }) {
                 const isLeft = index % 2 === 0;
 
                 return (
-                  <div key={memory.id} className="relative pl-11 sm:pl-14 md:pl-0">
+                  <div
+                    key={memory.id}
+                    className="relative pl-11 sm:pl-14 md:pl-0"
+                  >
                     {/* coração no trilho */}
                     <motion.span
                       initial={{ scale: 0, opacity: 0 }}
