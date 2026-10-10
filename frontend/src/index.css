@@ -77,26 +77,28 @@
     font-family: var(--font-sans);
     color: var(--color-ink);
     background-color: var(--color-romance-50);
+
     background-image:
       radial-gradient(
         ellipse 80% 55% at 12% 0%,
-        rgba(253, 164, 187, 0.4),
+        color-mix(in srgb, var(--color-romance-300) 40%, transparent),
         transparent 60%
       ),
       radial-gradient(
         ellipse 70% 50% at 92% 18%,
-        rgba(220, 174, 99, 0.22),
+        color-mix(in srgb, var(--color-gold) 22%, transparent),
         transparent 62%
       ),
       radial-gradient(
         ellipse 90% 60% at 50% 100%,
-        rgba(242, 71, 123, 0.16),
+        color-mix(in srgb, var(--color-romance-500) 16%, transparent),
         transparent 65%
       );
-    /* "fixed" engasga feio no Safari do iPhone — só no desktop */
     background-attachment: scroll;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+
+    transition: background-color 0.5s ease;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -130,12 +132,67 @@
     );
     border-radius: 99px;
   }
+
+  :root[data-theme="snow"] {
+    --color-romance-50: #f0f9ff;
+    --color-romance-100: #e0f2fe;
+    --color-romance-200: #bae6fd;
+    --color-romance-300: #7dd3fc;
+    --color-romance-400: #38bdf8;
+    --color-romance-500: #0ea5e9;
+    --color-romance-600: #0284c7;
+    --color-romance-700: #0369a1;
+    --color-romance-800: #075985;
+    --color-romance-900: #0c4a6e;
+    --color-romance-950: #082f49;
+    --color-gold: #38bdf8;
+    --color-ink: #0f172a;
+    --color-cream: #f8fafc;
+  }
+
+  /* TEMA: ESTRELAS (Tons Noturnos/Roxos Elegantes) */
+  :root[data-theme="stars"] {
+    --color-romance-50: #faf5ff;
+    --color-romance-100: #f3e8ff;
+    --color-romance-200: #e9d5ff;
+    --color-romance-300: #d8b4fe;
+    --color-romance-400: #c084fc;
+    --color-romance-500: #a855f7;
+    --color-romance-600: #9333ea;
+    --color-romance-700: #7e22ce;
+    --color-romance-800: #6b21a8;
+    --color-romance-900: #581c87;
+    --color-romance-950: #3b0764;
+    --color-gold: #fbbf24;
+    --color-ink: #171717;
+    --color-cream: #fdfaf6;
+  }
+
+  /* TEMA: CONFETES (Tons Esverdeados/Alegres) */
+  :root[data-theme="confetti"] {
+    --color-romance-50: #f0fdf4;
+    --color-romance-100: #dcfce7;
+    --color-romance-200: #bbf7d0;
+    --color-romance-300: #86efac;
+    --color-romance-400: #4ade80;
+    --color-romance-500: #22c55e;
+    --color-romance-600: #16a34a;
+    --color-romance-700: #15803d;
+    --color-romance-800: #166534;
+    --color-romance-900: #14532d;
+    --color-romance-950: #052e16;
+    --color-gold: #f59e0b;
+    --color-ink: #064e3b;
+    --color-cream: #f8fafc;
+  }
+
+  /* Os temas "hearts" e "petals" vão simplesmente herdar as cores rosas padrão do seu @theme original, então não precisamos defini-los aqui! */
 }
 
 @utility glass {
-  background: rgba(255, 255, 255, 0.62);
+  background: color-mix(255, 255, 255, 0.62);
   backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid color-mix(255, 255, 255, 0.75);
 }
 
 @utility text-gradient-romance {
@@ -176,7 +233,7 @@
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0 27px,
-    rgba(242, 71, 123, 0.16) 27px 28px
+    color-mix(242, 71, 123, 0.16) 27px 28px
   );
 }
 

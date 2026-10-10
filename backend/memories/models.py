@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Author(models.TextChoices):
@@ -15,6 +16,7 @@ class Memory(models.Model):
     permite hospedar em Railway/Render/Fly sem perder as imagens quando
     o container reinicia — nesses lugares o sistema de arquivos é efêmero.
     """
+
 
     title = models.CharField("título", max_length=140)
     note = models.TextField("anotação", blank=True)
@@ -37,6 +39,9 @@ class Memory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    unlock_date = models.DateTimeField(null=True, blank=True, help_text="Se definido, a memória só poderá ser vista após esta data.")
+
+    is_notified = models.BooleanField("notificação enviada", default=False)
     class Meta:
         ordering = ["happened_on", "created_at"]
         verbose_name = "memória"
@@ -56,6 +61,12 @@ class Memory(models.Model):
         """Copia o resultado de imaging.process_upload() para o objeto."""
         for field, value in processed.items():
             setattr(self, field, value)
+
+    @property
+    def is_locked(self):
+        if self.unlock_date:
+            return timezone.now() < self.unlock_date
+        return False
 
 
 class Annotation(models.Model):
@@ -77,3 +88,14 @@ class Annotation(models.Model):
 
     def __str__(self):
         return f"{self.get_author_display()}: {self.text[:40]}"
+
+class MemoryImage(models.Model):
+    memory = models.ForeignKey('Memory', on_delete=models.CASCADE, related_name='gallery')
+    image_data = models.BinaryField("foto (bytes)", editable=False)
+    thumb_data = models.BinaryField("miniatura (bytes)", editable=False)
+    image_mime = models.CharField(max_length=40, default="image/webp")
+    image_hash = models.CharField(max_length=64, blank=True, db_index=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Foto adicional para {self.memory.title}"
