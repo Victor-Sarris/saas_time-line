@@ -11,7 +11,7 @@ export default function MemoryBookPdf({ memories, config }) {
       style={{
         display: "none", // Fica oculto na interface web
         width: "210mm",
-        background: "#fffaf7", // Sua cor --color-cream
+        background: "#fffaf7",
         color: "#4b0620", // Sua cor --color-romance-950
         fontFamily: "Georgia, serif",
         padding: "20mm",
