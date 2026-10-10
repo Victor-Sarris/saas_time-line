@@ -7,3 +7,4 @@ urlpatterns = [
 ]
 
 # As fotos não são arquivos estáticos: saem do banco por /api/memories/<id>/image/.
+#teste
