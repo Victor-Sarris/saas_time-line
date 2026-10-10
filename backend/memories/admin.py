@@ -4,8 +4,24 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from .imaging import process_upload
-from .models import Annotation, Memory
+from .models import Annotation, Memory, MemoryImage
 
+class MemoryImageInline(admin.TabularInline):
+    model = MemoryImage
+    extra = 0
+    fields = ("thumb_galeria",)
+    readonly_fields = ("thumb_galeria",)
+    can_delete = True
+
+    @admin.display(description="miniatura")
+    def thumb_galeria(self, obj):
+        if not obj.pk or not obj.image_hash:
+            return "—"
+        return format_html(
+            '<img src="{}?v={}" style="height:60px;border-radius:6px;" />',
+            reverse("gallery-thumb", args=[obj.pk]),
+            obj.image_hash[:12],
+        )
 
 class MemoryAdminForm(forms.ModelForm):
     """A foto não é um campo do model — entra por aqui e vira bytes."""
@@ -51,7 +67,7 @@ class AnnotationInline(admin.TabularInline):
 @admin.register(Memory)
 class MemoryAdmin(admin.ModelAdmin):
     form = MemoryAdminForm
-    inlines = [AnnotationInline]
+    inlines = [AnnotationInline, MemoryImageInline]
 
     list_display = ("thumb", "title", "happened_on", "author", "is_favorite", "peso")
     list_display_links = ("thumb", "title")
@@ -116,3 +132,4 @@ class AnnotationAdmin(admin.ModelAdmin):
     list_display = ("memory", "author", "text", "created_at")
     list_filter = ("author",)
     search_fields = ("text",)
+

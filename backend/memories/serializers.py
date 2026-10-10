@@ -21,13 +21,14 @@ class AnnotationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Escreve alguma coisa, vai. 💌")
         return value
 
+
 class MemoryImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     thumb_url = serializers.SerializerMethodField()
 
     class Meta:
         model = MemoryImage
-        fields = ['id', 'image_url', 'thumb_url']
+        fields = ["id", "image_url", "thumb_url"]
 
     def _absolute(self, view_name, obj):
         path = reverse(view_name, args=[obj.pk])
@@ -41,6 +42,7 @@ class MemoryImageSerializer(serializers.ModelSerializer):
     def get_thumb_url(self, obj):
         return self._absolute("gallery-thumb", obj)
 
+
 class MemorySerializer(serializers.ModelSerializer):
     # entra o arquivo cru, sai a URL de quem serve os bytes do banco
     image = serializers.ImageField(write_only=True)
@@ -50,10 +52,11 @@ class MemorySerializer(serializers.ModelSerializer):
     author_display = serializers.CharField(source="get_author_display", read_only=True)
     annotations = AnnotationSerializer(many=True, read_only=True)
     gallery = MemoryImageSerializer(many=True, read_only=True)
+    is_locked = serializers.SerializerMethodField()
 
     class Meta:
         model = Memory
-        fields = '__all__'
+        fields = "__all__"
         read_only_fields = [
             "id",
             "created_at",
@@ -61,6 +64,7 @@ class MemorySerializer(serializers.ModelSerializer):
             "image_height",
         ]
 
+    # --- URLs absolutas das fotos ---
     def _absolute(self, view_name, obj):
         path = reverse(view_name, args=[obj.pk])
         request = self.context.get("request")
@@ -73,6 +77,10 @@ class MemorySerializer(serializers.ModelSerializer):
     def get_thumb_url(self, obj):
         return self._absolute("memory-thumb", obj)
 
+    def get_is_locked(self, obj):
+        return obj.is_locked
+
+    # --- validações ---
     def validate_title(self, value):
         value = value.strip()
         if not value:
@@ -96,6 +104,7 @@ class MemorySerializer(serializers.ModelSerializer):
         except ValueError as exc:
             raise serializers.ValidationError({"image": str(exc)}) from exc
 
+    # --- CRUD ---
     def create(self, validated_data):
         processed = self._pop_processed_image(validated_data)
         memory = Memory(**validated_data)
@@ -112,19 +121,17 @@ class MemorySerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    is_locked = serializers.SerializerMethodField()
-
-    def get_is_locked(self, obj):
-        return obj.is_locked
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.is_locked:
-            # Usa os nomes corretos devolvidos pela sua API
-            data['note'] = "Esta é uma Cápsula do Tempo! O conteúdo está guardado a sete chaves."
-            data['image_url'] = None
-            data['thumb_url'] = None
-            data['gallery'] = []
+            # Esconde TUDO que poderia dar spoiler de uma Cápsula do Tempo
+            data["note"] = (
+                "Esta é uma Cápsula do Tempo! O conteúdo está guardado a sete chaves."
+            )
+            data["image_url"] = None
+            data["thumb_url"] = None
+            data["gallery"] = []
+            data["location"] = ""  # não entrega o lugar também
         return data
 
 

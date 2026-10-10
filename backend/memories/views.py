@@ -21,6 +21,10 @@ from .serializers import (
     MemoryUpdateSerializer,
 )
 
+import logging
+from django.core.mail import send_mail
+logger = logging.getLogger(__name__)
+
 # Os blobs são pesados: nunca traga eles junto da listagem.
 LIST_DEFER = ("image_data", "thumb_data")
 
@@ -247,9 +251,8 @@ def gallery_thumb(request, pk):
 
 
 @api_view(["GET", "POST"])
-@permission_classes([AllowAny])  # A proteção será feita por token
+@permission_classes([AllowAny])  # a proteção é feita via token abaixo
 def send_reminders(request):
-    # Proteção: só roda se o token correto for passado no Header
     auth_header = request.headers.get("Authorization")
     expected_token = f"Bearer {settings.CRON_SECRET}"
 
@@ -258,34 +261,43 @@ def send_reminders(request):
 
     now = timezone.now()
 
-    # Busca memórias que atingiram a data de desbloqueio e ainda não foram notificadas
-    unlocked_memories = Memory.objects.filter(
-        unlock_date__lte=now,
-        is_notified=False
-    )
+    # Materializa a lista ANTES de marcar como notificada — senão o count()
+    # no final dá 0 (queryset é lazy e re-consulta o banco já sem as memórias).
+    memorias = list(Memory.objects.filter(unlock_date__lte=now, is_notified=False))
 
-    if not unlocked_memories.exists():
+    if not memorias:
         return Response({"status": "Nenhuma nova memória para notificar."})
 
-    # Lógica para enviar o e-mail
-    for memory in unlocked_memories:
-        assunto = f"Nova Cápsula do Tempo Desbloqueada: {memory.title}!"
-        mensagem = f"O momento '{memory.title}' guardado na linha do tempo finalmente foi desbloqueado!\n\nAcesse o site para ver as fotos e recados guardados."
+    enviados = 0
+    falhas = 0
 
-        # Envia o e-mail (ajuste o destinatário conforme necessário)
-        send_mail(
-            assunto,
-            mensagem,
-            settings.DEFAULT_FROM_EMAIL,
-            settings.EMAILS_DO_CASAL,
-            fail_silently=False,
+    for memory in memorias:
+        assunto = f"Nova Cápsula do Tempo Desbloqueada: {memory.title}!"
+        mensagem = (
+            f"O momento '{memory.title}' guardado na linha do tempo "
+            f"finalmente foi desbloqueado!\n\n"
+            f"Acesse o site para ver as fotos e recados guardados."
         )
 
-        # Marca como enviada para não mandar de novo amanhã
-        memory.is_notified = True
-        memory.save(update_fields=["is_notified"])
+        try:
+            send_mail(
+                assunto,
+                mensagem,
+                settings.DEFAULT_FROM_EMAIL,
+                settings.EMAILS_DO_CASAL,
+                fail_silently=False,
+            )
+            memory.is_notified = True
+            memory.save(update_fields=["is_notified"])
+            enviados += 1
+        except Exception as exc:
+            logger.exception(
+                "Falha ao enviar e-mail da memória %s: %s", memory.pk, exc
+            )
+            falhas += 1
 
     return Response({
         "status": "Sucesso",
-        "notificacoes_enviadas": unlocked_memories.count()
+        "notificacoes_enviadas": enviados,
+        "falhas": falhas,
     })
